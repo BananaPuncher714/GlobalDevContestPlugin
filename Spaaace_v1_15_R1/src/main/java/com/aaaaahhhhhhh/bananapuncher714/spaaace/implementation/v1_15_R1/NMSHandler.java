@@ -1,0 +1,377 @@
+package com.aaaaahhhhhhh.bananapuncher714.spaaace.implementation.v1_15_R1;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
+import java.util.function.BiFunction;
+
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.World;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
+import org.bukkit.craftbukkit.v1_15_R1.CraftWorld;
+import org.bukkit.craftbukkit.v1_15_R1.block.CraftBlock;
+import org.bukkit.craftbukkit.v1_15_R1.entity.CraftEntity;
+import org.bukkit.craftbukkit.v1_15_R1.entity.CraftLivingEntity;
+import org.bukkit.craftbukkit.v1_15_R1.entity.CraftPlayer;
+import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Player;
+import org.bukkit.util.BlockIterator;
+import org.bukkit.util.Vector;
+
+import com.aaaaahhhhhhh.bananapuncher714.spaaace.Spaaace;
+import com.aaaaahhhhhhh.bananapuncher714.spaaace.api.PacketHandler;
+import com.aaaaahhhhhhh.bananapuncher714.spaaace.api.entity.npc.GunsmokeNPC;
+import com.aaaaahhhhhhh.bananapuncher714.spaaace.api.events.player.AdvancementOpenEvent;
+import com.aaaaahhhhhhh.bananapuncher714.spaaace.api.events.player.DropItemEvent;
+import com.aaaaahhhhhhh.bananapuncher714.spaaace.api.tracking.GunsmokeEntityTracker;
+import com.aaaaahhhhhhh.bananapuncher714.spaaace.api.util.CollisionResultBlock;
+import com.aaaaahhhhhhh.bananapuncher714.spaaace.util.BukkitUtil;
+import com.mojang.authlib.GameProfile;
+
+import net.minecraft.server.v1_15_R1.AttributeInstance;
+import net.minecraft.server.v1_15_R1.BlockPosition;
+import net.minecraft.server.v1_15_R1.DataWatcher;
+import net.minecraft.server.v1_15_R1.DataWatcher.Item;
+import net.minecraft.server.v1_15_R1.DataWatcherObject;
+import net.minecraft.server.v1_15_R1.DataWatcherRegistry;
+import net.minecraft.server.v1_15_R1.EntityPlayer;
+import net.minecraft.server.v1_15_R1.Fluid;
+import net.minecraft.server.v1_15_R1.GenericAttributes;
+import net.minecraft.server.v1_15_R1.IBlockData;
+import net.minecraft.server.v1_15_R1.MinecraftServer;
+import net.minecraft.server.v1_15_R1.MovingObjectPositionBlock;
+import net.minecraft.server.v1_15_R1.Packet;
+import net.minecraft.server.v1_15_R1.PacketPlayInAdvancements;
+import net.minecraft.server.v1_15_R1.PacketPlayInAdvancements.Status;
+import net.minecraft.server.v1_15_R1.PacketPlayInBlockDig;
+import net.minecraft.server.v1_15_R1.PacketPlayInBlockDig.EnumPlayerDigType;
+import net.minecraft.server.v1_15_R1.PacketPlayInBlockPlace;
+import net.minecraft.server.v1_15_R1.PacketPlayOutAbilities;
+import net.minecraft.server.v1_15_R1.PacketPlayOutBlockBreakAnimation;
+import net.minecraft.server.v1_15_R1.PacketPlayOutBlockChange;
+import net.minecraft.server.v1_15_R1.PacketPlayOutEntityEquipment;
+import net.minecraft.server.v1_15_R1.PacketPlayOutEntityMetadata;
+import net.minecraft.server.v1_15_R1.PacketPlayOutEntityStatus;
+import net.minecraft.server.v1_15_R1.PacketPlayOutMapChunk;
+import net.minecraft.server.v1_15_R1.PacketPlayOutUpdateAttributes;
+import net.minecraft.server.v1_15_R1.PacketPlayOutWorldBorder;
+import net.minecraft.server.v1_15_R1.PlayerChunkMap.EntityTracker;
+import net.minecraft.server.v1_15_R1.PlayerConnection;
+import net.minecraft.server.v1_15_R1.RayTrace;
+import net.minecraft.server.v1_15_R1.Vec3D;
+import net.minecraft.server.v1_15_R1.VoxelShape;
+import net.minecraft.server.v1_15_R1.WorldServer;
+
+public class NMSHandler implements PacketHandler {
+	private static Field ENTITYMETADATA_ITEMLIST;
+	private static Field ENTITYMETADATA_ID;
+
+	private static Field ENTITYEQUIPMENT_ID;
+	private static Field ENTITYEQUIPMENT_SLOT;
+	private static Field ENTITYEQUIPMENT_ITEMSTACK;
+
+	private static Field BLOCKCHANGE_POSITION;
+
+	private static Field MAPCHUNK_X;
+	private static Field MAPCHUNK_Z;
+
+	private static Field PLAYERABILITIES_FOV;
+
+	private static Field TELEPORT_AWAIT;
+	
+	private static Field[] WORLDBORDERPACKET_FIELDS;
+	
+	private static Field ENTITYTRACKER_ENTITY;
+	
+	private static Method VOXEL_SHAPE_CONTAINS;
+	
+	static {
+		try {
+			ENTITYMETADATA_ITEMLIST = PacketPlayOutEntityMetadata.class.getDeclaredField("b");
+			ENTITYMETADATA_ITEMLIST.setAccessible(true);
+
+			ENTITYMETADATA_ID = PacketPlayOutEntityMetadata.class.getDeclaredField("a");
+			ENTITYMETADATA_ID.setAccessible(true);
+
+			ENTITYEQUIPMENT_ID = PacketPlayOutEntityEquipment.class.getDeclaredField("a");
+			ENTITYEQUIPMENT_ID.setAccessible(true);
+
+			ENTITYEQUIPMENT_SLOT = PacketPlayOutEntityEquipment.class.getDeclaredField("b");
+			ENTITYEQUIPMENT_SLOT.setAccessible(true);
+
+			ENTITYEQUIPMENT_ITEMSTACK = PacketPlayOutEntityEquipment.class.getDeclaredField("c");
+			ENTITYEQUIPMENT_ITEMSTACK.setAccessible(true);
+
+			BLOCKCHANGE_POSITION = PacketPlayOutBlockChange.class.getDeclaredField("a");
+			BLOCKCHANGE_POSITION.setAccessible(true);
+
+			MAPCHUNK_X = PacketPlayOutMapChunk.class.getDeclaredField("a");
+			MAPCHUNK_X.setAccessible(true);
+
+			MAPCHUNK_Z = PacketPlayOutMapChunk.class.getDeclaredField("b");
+			MAPCHUNK_Z.setAccessible(true);
+
+			PLAYERABILITIES_FOV = PacketPlayOutAbilities.class.getDeclaredField("f");
+			PLAYERABILITIES_FOV.setAccessible(true);
+			
+			TELEPORT_AWAIT = PlayerConnection.class.getDeclaredField( "teleportAwait" );
+			TELEPORT_AWAIT.setAccessible( true );
+			
+			VOXEL_SHAPE_CONTAINS = VoxelShape.class.getDeclaredMethod( "b", double.class, double.class, double.class );
+			VOXEL_SHAPE_CONTAINS.setAccessible( true );
+			
+			ENTITYTRACKER_ENTITY = EntityTracker.class.getDeclaredField( "tracker" );
+			ENTITYTRACKER_ENTITY.setAccessible( true );
+			
+			WORLDBORDERPACKET_FIELDS = new Field[ 9 ];
+			WORLDBORDERPACKET_FIELDS[ 0 ] = PacketPlayOutWorldBorder.class.getDeclaredField( "a" );
+			WORLDBORDERPACKET_FIELDS[ 1 ] = PacketPlayOutWorldBorder.class.getDeclaredField( "b" );
+			WORLDBORDERPACKET_FIELDS[ 2 ] = PacketPlayOutWorldBorder.class.getDeclaredField( "c" );
+			WORLDBORDERPACKET_FIELDS[ 3 ] = PacketPlayOutWorldBorder.class.getDeclaredField( "d" );
+			WORLDBORDERPACKET_FIELDS[ 4 ] = PacketPlayOutWorldBorder.class.getDeclaredField( "e" );
+			WORLDBORDERPACKET_FIELDS[ 5 ] = PacketPlayOutWorldBorder.class.getDeclaredField( "f" );
+			WORLDBORDERPACKET_FIELDS[ 6 ] = PacketPlayOutWorldBorder.class.getDeclaredField( "g" );
+			WORLDBORDERPACKET_FIELDS[ 7 ] = PacketPlayOutWorldBorder.class.getDeclaredField( "h" );
+			WORLDBORDERPACKET_FIELDS[ 8 ] = PacketPlayOutWorldBorder.class.getDeclaredField( "i" );
+			for ( Field field : WORLDBORDERPACKET_FIELDS ) {
+				field.setAccessible( true );
+			}
+        } catch ( NoSuchFieldException | SecurityException | IllegalArgumentException | NoSuchMethodException e ) {
+			e.printStackTrace();
+		}
+	}
+	
+	private Spaaace plugin;
+	private NMSTracker entityTracker = new NMSTracker();
+	
+	@Override
+	public Object onPacketInterceptOut( Player player, Object packet ) {
+		return packet;
+	}
+
+	@Override
+	public Object onPacketInterceptIn( Player reciever, Object packet ) {
+		if ( packet instanceof PacketPlayInBlockPlace ) {
+			return handleBlockPlacePacket( reciever, ( PacketPlayInBlockPlace ) packet );
+		} else if ( packet instanceof PacketPlayInBlockDig ) {
+			return handleBlockDigPacket( reciever, ( PacketPlayInBlockDig ) packet );
+		} else if ( packet instanceof PacketPlayInAdvancements ) {
+			return handleAdvancementPacket( reciever, ( PacketPlayInAdvancements ) packet );
+		}
+		return packet;
+	}
+	
+	private Packet< ? > handleAdvancementPacket( Player player, PacketPlayInAdvancements packet ) {
+		if ( packet.c() == Status.OPENED_TAB ) {
+			new AdvancementOpenEvent( player, packet.d().getKey() ).callEvent();;
+		}
+		return packet;
+	}
+
+	private Packet< ? > handleBlockPlacePacket( Player player, PacketPlayInBlockPlace packet ) {
+		if ( BukkitUtil.isRightClickable( player.getEquipment().getItemInMainHand().getType() ) ) {
+			plugin.getPlayerManager().setHolding( player, true );
+		}
+		return packet;
+	}
+	
+	private Packet< ? > handleBlockDigPacket( Player player, PacketPlayInBlockDig packet ) {
+		if ( packet.d() == EnumPlayerDigType.RELEASE_USE_ITEM ) {
+			plugin.getPlayerManager().setHolding( player, false );
+		} else if ( packet.d() == EnumPlayerDigType.DROP_ITEM ) {
+			DropItemEvent event = new DropItemEvent( player );
+			
+			CountDownLatch latch = new CountDownLatch( 1 );
+			Bukkit.getScheduler().scheduleSyncDelayedTask( plugin, () -> {
+				Bukkit.getPluginManager().callEvent( event );
+				latch.countDown();
+			} );
+			
+			try {
+				latch.await();
+			} catch ( InterruptedException e ) {
+				e.printStackTrace();
+			}
+			
+			if ( event.isCancelled() ) {
+				player.getEquipment().setItemInMainHand( player.getEquipment().getItemInMainHand() );
+				return null;
+			}
+		}
+		return packet;
+	}
+	
+	@Override
+	public void tick() {
+		entityTracker.tick();
+	}
+
+	@Override
+	public List< CollisionResultBlock > rayTrace( Location start, Vector vector, double distance ) {
+		return rayTrace( start, vector.clone().normalize().multiply( distance ) );
+	}
+	
+	@Override
+	public List< CollisionResultBlock > rayTrace( Location start, Vector vector ) {
+		net.minecraft.server.v1_15_R1.World world = ( ( CraftWorld ) start.getWorld() ).getHandle();
+		List< CollisionResultBlock > collisions = new ArrayList< CollisionResultBlock >();
+		for ( MovingObjectPositionBlock result : rayTrace( start, vector, new BiFunction< RayTrace, BlockPosition, MovingObjectPositionBlock >() {
+			@Override
+			public MovingObjectPositionBlock apply( RayTrace ray, BlockPosition blockPosition ) {
+				IBlockData hitBlock = world.getType( blockPosition );
+	            Fluid hitFluid = world.getFluid( blockPosition);
+	            Vec3D getStart = ray.b();
+	            Vec3D getEnd = ray.a();
+	            VoxelShape blockShape = ray.a( hitBlock, world, blockPosition );
+	            MovingObjectPositionBlock blockResult = world.rayTrace( getStart, getEnd, blockPosition, blockShape, hitBlock );
+	            VoxelShape fluidShape = ray.a( hitFluid, world, blockPosition );
+	            MovingObjectPositionBlock fluidResult = fluidShape.rayTrace( getStart, getEnd, blockPosition);
+	            // Get whichever one is shorter and return
+	            double blockDistance = blockResult == null ? Double.MAX_VALUE : ray.b().distanceSquared( blockResult.getPos() );
+	            double fluidDistance = fluidResult == null ? Double.MAX_VALUE : ray.b().distanceSquared( fluidResult.getPos() );
+	            return blockDistance <= fluidDistance ? blockResult : fluidResult;
+			}
+		} ) ) {
+			collisions.add( getResultFrom( world, result ) );
+		}
+		return collisions;
+	}
+	
+	private List< MovingObjectPositionBlock > rayTrace( Location origin, Vector vector, BiFunction< RayTrace, BlockPosition, MovingObjectPositionBlock > biFunction ) {
+		Location dest = origin.clone().add( vector );
+		Vec3D start = new Vec3D( origin.getX(), origin.getY(), origin.getZ() );
+		Vec3D end = new Vec3D( dest.getX(), dest.getY(), dest.getZ() );
+		RayTrace trace = new RayTrace( start, end, RayTrace.BlockCollisionOption.OUTLINE, RayTrace.FluidCollisionOption.NONE, null );
+		
+		BlockIterator iterator = new BlockIterator( origin.getWorld(), origin.toVector(), vector, 0, ( int ) ( 1 + vector.length() ) );
+
+	    List< MovingObjectPositionBlock > results = new ArrayList< MovingObjectPositionBlock >();
+	    
+	    while ( iterator.hasNext() ) {
+	    	Block block = iterator.next();
+	    	Location bLoc = block.getLocation();
+	    	MovingObjectPositionBlock result = biFunction.apply( trace, new BlockPosition( bLoc.getBlockX(), bLoc.getBlockY(), bLoc.getBlockZ() ) );
+	    	if ( result != null ) {
+	    		results.add( result );
+	    	}
+	    }
+	    
+	    return results;
+	}
+	
+	private CollisionResultBlock getResultFrom( net.minecraft.server.v1_15_R1.World world, MovingObjectPositionBlock position ) {
+		Block block = CraftBlock.at( world, position.getBlockPosition() );
+		BlockFace face = CraftBlock.notchToBlockFace( position.getDirection() );
+		Vec3D fin = position.getPos();
+		Location interception = new Location( world.getWorld(), fin.getX(), fin.getY(), fin.getZ() );
+		return new CollisionResultBlock( interception, face, block );
+	}
+	
+	@Override
+	public int getServerTick() {
+		return MinecraftServer.currentTick;
+	}
+	
+	@Override
+	public void playHurtAnimationFor( LivingEntity entity ) {
+		if ( entity instanceof Player ) {
+			List< AttributeInstance > attributes = new ArrayList< AttributeInstance >();
+			attributes.add( ( ( CraftLivingEntity ) entity ).getHandle().getAttributeInstance( GenericAttributes.MAX_HEALTH ) );
+			PacketPlayOutUpdateAttributes attributePacket = new PacketPlayOutUpdateAttributes( entity.getEntityId(), attributes );
+
+			plugin.getProtocol().sendPacket( ( Player ) entity , attributePacket );
+		}
+		
+		PacketPlayOutEntityStatus packet = new PacketPlayOutEntityStatus( ( ( CraftEntity ) entity ).getHandle(), ( byte ) 2 );
+		broadcastPacket( entity, packet, true );
+	}
+	
+	@Override
+	public void setAir( Player player, int air ) {
+		int id = player.getEntityId();
+		DataWatcher watcher = ( ( CraftEntity ) player ).getHandle().getDataWatcher();
+		PacketPlayOutEntityMetadata packet = new PacketPlayOutEntityMetadata( id, watcher, false );
+
+		List< Item< ? > > items = null;
+		try {
+			items = ( List< Item< ? > > ) ENTITYMETADATA_ITEMLIST.get( packet );
+			if ( items == null ) {
+				items = new ArrayList< Item< ? > >();
+				ENTITYMETADATA_ITEMLIST.set( packet, items );
+			}
+		} catch ( IllegalArgumentException | IllegalAccessException e ) {
+			e.printStackTrace();
+		}
+		items.clear();
+		items.add( new Item< Integer >( new DataWatcherObject< Integer >( 1, DataWatcherRegistry.b ), air ) );
+		
+		plugin.getProtocol().sendPacket( player, packet );
+	}
+	
+	@Override
+	public void damageBlock( Location location, int stage ) {
+		location.setYaw( 0 );
+		location.setPitch( 0 );
+		location = BukkitUtil.getBlockLocation( location );
+		PacketPlayOutBlockBreakAnimation packet = new PacketPlayOutBlockBreakAnimation( location.hashCode(), new BlockPosition( location.getBlockX(), location.getBlockY(), location.getBlockZ() ), stage );
+		
+		broadcastPacket( location.getWorld(), packet );
+	}
+	
+	@Override
+	public GunsmokeEntityTracker getEntityTrackerFor( org.bukkit.entity.Entity bukkitEntity ) {
+		return entityTracker.getEntityTrackerFor( bukkitEntity );
+	}
+	
+	@Override
+	public boolean isRealPlayer( Player player ) {
+		return ( ( CraftPlayer ) player ).getHandle().getClass().equals( EntityPlayer.class );
+	}
+	
+	@Override
+	public GunsmokeNPC getNPC( Player player ) {
+		EntityPlayer ep = ( ( CraftPlayer ) player ).getHandle();
+		if ( ep instanceof GunsmokeNPC ) {
+			return ( GunsmokeNPC ) ep;
+		}
+		return null;
+	}
+	
+	@Override
+	public GunsmokeNPC spawnNPC( World bukkitWorld, String name, String skin ) {
+		WorldServer world = ( ( CraftWorld ) bukkitWorld ).getHandle();
+		
+		GameProfile profile = NMSUtils.convert( new GameProfile( UUID.randomUUID(), name ), skin );
+		
+		TestEntity npc = new TestEntity( world, profile );
+		
+		world.addEntity( npc );
+		
+		return npc;
+	}
+	
+	@Override
+	public void setPlugin( Spaaace plugin ) {
+		this.plugin = plugin;
+	}
+
+	protected void broadcastPacket( World world, Packet< ? > packet ) {
+		for ( Player player : world.getPlayers() ) {
+			plugin.getProtocol().sendPacket( player, packet );
+		}
+	}
+	
+	protected void broadcastPacket( org.bukkit.entity.Entity origin, Packet< ? > packet, boolean updateSelf ) {
+		CustomEntityTracker tracker = entityTracker.getEntityTrackerFor( origin );
+		if ( updateSelf ) {
+			tracker.broadcastIncludingSelf( packet );
+		} else {
+			tracker.broadcast( packet );
+		}
+	}
+}

@@ -1,0 +1,9 @@
+name: Spaaace
+main: com.aaaaahhhhhhh.bananapuncher714.spaaace.Spaaace
+version: 0.0.1
+author: BananaPuncher714
+description: Is this Minecraft?
+api-version: 1.13
+commands:
+  setspeed:
+    default: op
