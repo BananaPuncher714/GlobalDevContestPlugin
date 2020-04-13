@@ -20,7 +20,7 @@ public class Spaaace {
 			if ( sender instanceof Player ) {
 				Player player = ( Player ) sender;
 				
-				TestItem test = new TestItem( 19 );
+				PowerHoe test = new PowerHoe();
 				core.getItemManager().register( test );
 				
 				player.getInventory().addItem( test.getItem() );

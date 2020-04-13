@@ -41,6 +41,8 @@ import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.entity.GunsmokeInterac
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.entity.bukkit.GunsmokeEntityWrapper;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.entity.bukkit.GunsmokeEntityWrapperPlayer;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.entity.bukkit.GunsmokeEntityWrapperProjectile;
+import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.block.GunsmokeBlockBreakEvent;
+import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.block.GunsmokeBlockDamageEvent;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.entity.GunsmokeEntityDamageEvent;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.entity.GunsmokeEntityDeathEvent;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.entity.GunsmokeEntityDespawnEvent;
@@ -49,6 +51,7 @@ import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.player.Advancem
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.player.DropItemEvent;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.player.HoldLeftClickEvent;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.player.HoldRightClickEvent;
+import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.player.InstabreakBlockEvent;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.player.LeftClickBlockEvent;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.player.LeftClickEntityEvent;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.player.LeftClickEvent;
@@ -267,6 +270,64 @@ public class ItemManager implements Listener {
 	}
 	
 	@EventHandler( priority = EventPriority.HIGHEST )
+	private void onEvent( GunsmokeBlockDamageEvent event ) {
+		GunsmokeRepresentable representable = event.getDamager();
+		if ( representable instanceof GunsmokeInteractive ) {
+			GunsmokeInteractive player = ( GunsmokeInteractive ) representable;
+			EnumEventResult result = EnumEventResult.SKIPPED;
+
+			if ( player instanceof Storeable ) {
+				Storeable storeable = ( Storeable ) player;
+
+				for ( ItemSlot slot : storeable.getSlots() ) {
+					GunsmokeRepresentable item = getRepresentable( slot.getItem() );
+					if ( item instanceof GunsmokeItemInteractable ) {
+						GunsmokeItemInteractable interactable = ( GunsmokeItemInteractable ) item;
+
+						if ( interactable.isEquipped() ) {
+							result = interactable.onClick( event );
+						}
+					}
+
+					// Continue if it's skipped or processed
+					if ( !( result == EnumEventResult.SKIPPED || result == EnumEventResult.PROCESSED ) ) {
+						break;
+					}
+				}
+			}
+		}
+	}
+	
+	@EventHandler( priority = EventPriority.HIGHEST )
+	private void onEvent( GunsmokeBlockBreakEvent event ) {
+		GunsmokeRepresentable representable = event.getBreaker();
+		if ( representable instanceof GunsmokeInteractive ) {
+			GunsmokeInteractive player = ( GunsmokeInteractive ) representable;
+			EnumEventResult result = EnumEventResult.SKIPPED;
+
+			if ( player instanceof Storeable ) {
+				Storeable storeable = ( Storeable ) player;
+
+				for ( ItemSlot slot : storeable.getSlots() ) {
+					GunsmokeRepresentable item = getRepresentable( slot.getItem() );
+					if ( item instanceof GunsmokeItemInteractable ) {
+						GunsmokeItemInteractable interactable = ( GunsmokeItemInteractable ) item;
+
+						if ( interactable.isEquipped() ) {
+							result = interactable.onClick( event );
+						}
+					}
+
+					// Continue if it's skipped or processed
+					if ( !( result == EnumEventResult.SKIPPED || result == EnumEventResult.PROCESSED ) ) {
+						break;
+					}
+				}
+			}
+		}
+	}
+	
+	@EventHandler( priority = EventPriority.HIGHEST )
 	private void onEvent( LeftClickEntityEvent event ) {
 		GunsmokeInteractive player = event.getEntity();
 		EnumEventResult result = EnumEventResult.SKIPPED;
@@ -346,6 +407,40 @@ public class ItemManager implements Listener {
 		// Mine the block here
 		if ( result == EnumEventResult.SKIPPED || result == EnumEventResult.PROCESSED ) {
 			Location loc = player.getMiningBlock();
+			if ( player instanceof GunsmokeRepresentable ) {
+				plugin.getBlockManager().damage( loc, 1, ( GunsmokeRepresentable ) player, DamageType.VANILLA );
+			}
+		}
+	}
+	
+	@EventHandler( priority = EventPriority.HIGHEST )
+	private void onEvent( InstabreakBlockEvent event ) {
+		GunsmokeInteractive player = event.getEntity();
+		EnumEventResult result = EnumEventResult.SKIPPED;
+		
+		if ( player instanceof Storeable ) {
+			Storeable storeable = ( Storeable ) player;
+			
+			for ( ItemSlot slot : storeable.getSlots() ) {
+				GunsmokeRepresentable item = getRepresentable( slot.getItem() );
+				if ( item instanceof GunsmokeItemInteractable ) {
+					GunsmokeItemInteractable interactable = ( GunsmokeItemInteractable ) item;
+					
+					if ( interactable.isEquipped() ) {
+						result = interactable.onClick( event );
+					}
+				}
+				
+				// Continue if it's skipped or processed
+				if ( !( result == EnumEventResult.SKIPPED || result == EnumEventResult.PROCESSED ) ) {
+					break;
+				}
+			}
+		}
+		
+		// Mine the block here
+		if ( result == EnumEventResult.SKIPPED || result == EnumEventResult.PROCESSED ) {
+			Location loc = event.getLocation();
 			if ( player instanceof GunsmokeRepresentable ) {
 				plugin.getBlockManager().damage( loc, 1, ( GunsmokeRepresentable ) player, DamageType.VANILLA );
 			}

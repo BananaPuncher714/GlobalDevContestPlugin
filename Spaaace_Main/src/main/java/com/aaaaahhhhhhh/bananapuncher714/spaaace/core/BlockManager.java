@@ -47,6 +47,7 @@ public class BlockManager {
 		if ( damageEvent.isCancelled() ) {
 			return;
 		}
+		damage = damageEvent.getDamage();
 		
 		if ( block.isInvincible() ) {
 			return;

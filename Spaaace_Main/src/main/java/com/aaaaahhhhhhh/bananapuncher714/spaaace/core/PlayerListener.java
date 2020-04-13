@@ -13,7 +13,6 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockDamageEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.entity.EntityPotionEffectEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerAnimationEvent;
@@ -38,6 +37,7 @@ public class PlayerListener implements Listener {
 	private SpaaaceCore plugin;
 	
 	private Map< UUID, Integer > interactLastCalled = new HashMap< UUID, Integer >();
+	private Map< UUID, Integer > instabreakLastCalled = new HashMap< UUID, Integer >();
 	
 	// Allow us to specify when to breaking blocks is allowed
 	private boolean allowBlockBreak = false;
@@ -176,13 +176,23 @@ public class PlayerListener implements Listener {
 	
 	@EventHandler( ignoreCancelled = true )
 	private void onBlockDamageEvent( BlockDamageEvent event ) {
-		// Ignore insta break blocks
-		if ( !event.getInstaBreak() ) {
-			Player player = event.getPlayer();
-			GunsmokeRepresentable representable = plugin.getItemManager().get( player.getUniqueId() );
-			if ( representable instanceof GunsmokeInteractive ) {
+		Player player = event.getPlayer();
+		GunsmokeRepresentable representable = plugin.getItemManager().get( player.getUniqueId() );
+		if ( representable instanceof GunsmokeInteractive ) {
+			GunsmokeInteractive interactive = ( GunsmokeInteractive ) representable;
+			if ( event.getInstaBreak() ) {
+				int tick = plugin.getHandler().getServerTick();
+				int prevTick = instabreakLastCalled.getOrDefault( player.getUniqueId(), 0 );
+				instabreakLastCalled.put( player.getUniqueId(), tick );
+				
+				if ( tick != prevTick ) {
+					Bukkit.getScheduler().runTaskLater( plugin, () -> {
+						plugin.getInteractiveManager().instabreak( interactive, event.getBlock().getLocation() );
+					}, 1 );
+				}
+			} else {
 				Bukkit.getScheduler().runTaskLater( plugin, () -> {
-				plugin.getInteractiveManager().setMining( ( GunsmokeInteractive ) representable, event.getBlock().getLocation() );
+					plugin.getInteractiveManager().setMining( interactive, event.getBlock().getLocation() );
 				}, 1 );
 			}
 		}

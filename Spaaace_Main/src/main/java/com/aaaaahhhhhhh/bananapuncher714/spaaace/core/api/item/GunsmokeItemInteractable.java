@@ -3,10 +3,13 @@ package com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.item;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.EnumEventResult;
+import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.block.GunsmokeBlockBreakEvent;
+import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.block.GunsmokeBlockDamageEvent;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.player.AdvancementOpenEvent;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.player.DropItemEvent;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.player.HoldLeftClickEvent;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.player.HoldRightClickEvent;
+import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.player.InstabreakBlockEvent;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.player.LeftClickBlockEvent;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.player.LeftClickEntityEvent;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.player.LeftClickEvent;
@@ -36,6 +39,10 @@ public abstract class GunsmokeItemInteractable extends GunsmokeItem {
 		return EnumEventResult.SKIPPED;
 	}
 	
+	public EnumEventResult onClick( InstabreakBlockEvent event ) {
+		return EnumEventResult.SKIPPED;
+	}
+	
 	public EnumEventResult onClick( ReleaseLeftClickEvent event ) {
 		return EnumEventResult.SKIPPED;
 	}
@@ -61,6 +68,14 @@ public abstract class GunsmokeItemInteractable extends GunsmokeItem {
 	}
 	
 	public EnumEventResult onClick( ReleaseRightClickEvent event ) {
+		return EnumEventResult.SKIPPED;
+	}
+	
+	public EnumEventResult onClick( GunsmokeBlockDamageEvent event ) {
+		return EnumEventResult.SKIPPED;
+	}
+	
+	public EnumEventResult onClick( GunsmokeBlockBreakEvent event ) {
 		return EnumEventResult.SKIPPED;
 	}
 }

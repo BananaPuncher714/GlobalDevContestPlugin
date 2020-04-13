@@ -26,6 +26,7 @@ import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.entity.bukkit.Gunsmoke
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.entity.bukkit.GunsmokeEntityWrapperPlayer;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.player.HoldLeftClickEvent;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.player.HoldRightClickEvent;
+import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.player.InstabreakBlockEvent;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.player.LeftClickBlockEvent;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.player.LeftClickEntityEvent;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.player.LeftClickEvent;
@@ -260,6 +261,10 @@ public class InteractiveManager {
 			return ( ( GunsmokeInteractive ) wrapper ).getTicksSinceMineStart();
 		}
 		return 0;
+	}
+	
+	public void instabreak( GunsmokeInteractive player, Location location ) {
+		new InstabreakBlockEvent( player, location ).callEvent();
 	}
 
 	public void rightClick( GunsmokeInteractive player, Cancellable parent ) {
