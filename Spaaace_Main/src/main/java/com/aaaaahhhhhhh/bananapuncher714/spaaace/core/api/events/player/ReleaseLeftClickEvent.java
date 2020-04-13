@@ -4,17 +4,11 @@ import org.bukkit.event.HandlerList;
 
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.entity.GunsmokeInteractive;
 
-public class HoldRightClickEvent extends InteractiveEntityEvent {
+public class ReleaseLeftClickEvent extends InteractiveEntityEvent {
 	private static final HandlerList handlers = new HandlerList();
-	protected int ticks;
 
-	public HoldRightClickEvent( GunsmokeInteractive player, int ticks ) {
+	public ReleaseLeftClickEvent( GunsmokeInteractive player ) {
 		super( player );
-		this.ticks = ticks;
-	}
-	
-	public int getHeldTime() {
-		return ticks;
 	}
 	
 	@Override

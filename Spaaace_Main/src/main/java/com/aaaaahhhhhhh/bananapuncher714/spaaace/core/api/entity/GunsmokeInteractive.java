@@ -10,6 +10,7 @@ public interface GunsmokeInteractive extends Unique {
 	int getTicksSinceRightClick();
 	boolean isMiningBlock();
 	void setMining( Location location );
+	Location getMiningBlock();
 	int getTicksSinceMineStart();
 	void stopMining();
 }

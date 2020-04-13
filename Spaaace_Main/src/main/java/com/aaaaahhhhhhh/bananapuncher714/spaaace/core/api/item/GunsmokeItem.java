@@ -5,24 +5,23 @@ import java.util.UUID;
 import org.bukkit.inventory.ItemStack;
 
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.GunsmokeRepresentable;
-import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.entity.GunsmokeInteractive;
 
 import io.github.bananapuncher714.nbteditor.NBTEditor;
 
 public abstract class GunsmokeItem extends GunsmokeRepresentable {
 	private final static Object[] CUSTOM = { "io", "github", "bananapuncher714", "operation", "gunsmoke", "item", "id" };
 	
-	protected GunsmokeInteractive gunsmokeHolder;
+	protected GunsmokeRepresentable gunsmokeHolder;
 	protected ItemSlot slot;
 	protected boolean isEquipped = false;
 	
-	public void onEquip( GunsmokeInteractive gunsmokeEntity, ItemSlot slot ) {
+	public void equip( GunsmokeRepresentable gunsmokeEntity, ItemSlot slot ) {
 		this.gunsmokeHolder = gunsmokeEntity;
 		this.slot = slot;
 		isEquipped = true;
 	}
 	
-	public void onUnequip() {
+	public void unequip() {
 		gunsmokeHolder = null;
 		slot = null;
 		isEquipped = false;
@@ -32,17 +31,14 @@ public abstract class GunsmokeItem extends GunsmokeRepresentable {
 		return isEquipped;
 	}
 	
-	public void dualWield( GunsmokeItem other ) {
-	}
-	
-	public boolean canDualWieldWith( GunsmokeItem other ) {
+	public boolean compatibleWith( ItemSlot slot ) {
 		return true;
 	}
 	
 	@Override
 	public void remove() {
 		if ( isEquipped ) {
-			onUnequip();
+			unequip();
 		}
 	}
 	

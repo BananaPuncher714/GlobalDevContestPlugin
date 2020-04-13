@@ -1,20 +1,21 @@
 package com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.player;
 
+import org.bukkit.Location;
 import org.bukkit.event.HandlerList;
 
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.entity.GunsmokeInteractive;
 
-public class HoldRightClickEvent extends InteractiveEntityEvent {
+public class LeftClickBlockEvent extends LeftClickEvent {
 	private static final HandlerList handlers = new HandlerList();
-	protected int ticks;
-
-	public HoldRightClickEvent( GunsmokeInteractive player, int ticks ) {
-		super( player );
-		this.ticks = ticks;
-	}
+	private final Location location;
 	
-	public int getHeldTime() {
-		return ticks;
+	public LeftClickBlockEvent( GunsmokeInteractive player, Location location ) {
+		super( player );
+		this.location = location.clone();
+	}
+
+	public Location getLocation() {
+		return location.clone();
 	}
 	
 	@Override

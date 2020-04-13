@@ -6,7 +6,6 @@ import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -23,14 +22,10 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.EquipmentSlot;
-import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.Inventory;
 
-import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.DamageType;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.GunsmokeRepresentable;
-import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.block.GunsmokeBlock;
-import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.entity.GunsmokeEntity;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.entity.GunsmokeInteractive;
-import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.block.GunsmokeBlockBreakEvent;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.entity.GunsmokeEntityDeathEvent;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.entity.GunsmokeEntityDespawnEvent;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.player.PlayerUpdateItemEvent;
@@ -42,11 +37,6 @@ public class PlayerListener implements Listener {
 	private SpaaaceCore plugin;
 	
 	private Map< UUID, Integer > interactLastCalled = new HashMap< UUID, Integer >();
-	
-	// Use for detection in breaking a gunsmoke block from the damage event
-	private GunsmokeBlock block = null;
-	private boolean broke = false;
-	
 	
 	protected PlayerListener( SpaaaceCore plugin ) {
 		this.plugin = plugin;
@@ -180,32 +170,25 @@ public class PlayerListener implements Listener {
 		}
 	}
 	
-	@EventHandler
+	@EventHandler( ignoreCancelled = true )
 	private void onBlockDamageEvent( BlockDamageEvent event ) {
+		// Ignore insta break blocks
 		if ( !event.getInstaBreak() ) {
-			event.setCancelled( true );
-			GunsmokeEntity entity = plugin.getItemManager().getEntity( event.getPlayer().getUniqueId() );
-			broke = false;
-			block = plugin.getBlockManager().getBlockOrCreate( event.getBlock().getLocation() );
-			plugin.getBlockManager().damage( event.getBlock().getLocation(), 1, entity, DamageType.PHYSICAL );
-			if ( broke == true ) {
-				event.getPlayer().sendMessage( "yay you broke it" );
-				event.getPlayer().getInventory().addItem( new ItemStack( Material.DIAMOND ) );
+			Player player = event.getPlayer();
+			GunsmokeRepresentable representable = plugin.getItemManager().get( player.getUniqueId() );
+			if ( representable instanceof GunsmokeInteractive ) {
+				plugin.getInteractiveManager().setMining( ( GunsmokeInteractive ) representable, event.getBlock().getLocation() );
 			}
 		}
 	}
 	
 	@EventHandler
-	private void onBlockBreakEvent( GunsmokeBlockBreakEvent event ) {
-		broke = block != null && block == event.getRepresentable();
-	}
-	
-	@EventHandler
 	private void onBlockBreakEvent( BlockBreakEvent event ) {
+		Inventory inventory = Bukkit.createInventory( null, 9 );
+		event.getPlayer().openInventory( inventory );
+		event.getPlayer().closeInventory();
+		
 		event.setCancelled( true );
-		
-		
-		plugin.getBlockManager().destroy( event.getBlock().getLocation() );
 	}
 	
 	/*

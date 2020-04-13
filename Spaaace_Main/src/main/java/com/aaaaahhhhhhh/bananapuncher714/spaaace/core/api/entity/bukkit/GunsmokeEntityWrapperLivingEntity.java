@@ -88,6 +88,14 @@ public class GunsmokeEntityWrapperLivingEntity extends GunsmokeEntityWrapper imp
 	}
 	
 	@Override
+	public Location getMiningBlock() {
+		if ( mining == null ) {
+			return null;
+		}
+		return mining.clone();
+	}
+	
+	@Override
 	public void setMining( Location location  ) {
 		if ( mining == null && location != null ) {
 			miningTimeStart = SpaaaceUtil.getCurrentTick();

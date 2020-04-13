@@ -8,6 +8,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.HumanEntity;
@@ -21,10 +22,13 @@ import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.entity.GunsmokeInterac
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.entity.bukkit.GunsmokeEntityWrapper;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.entity.bukkit.GunsmokeEntityWrapperLivingEntity;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.entity.bukkit.GunsmokeEntityWrapperPlayer;
+import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.player.HoldLeftClickEvent;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.player.HoldRightClickEvent;
+import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.player.LeftClickBlockEvent;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.player.LeftClickEntityEvent;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.player.LeftClickEvent;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.player.PlayerUpdateItemEvent;
+import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.player.ReleaseLeftClickEvent;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.player.ReleaseRightClickEvent;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.player.RightClickEntityEvent;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.player.RightClickEvent;
@@ -39,6 +43,7 @@ import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.util.BukkitUtil;
  */
 public class InteractiveManager {
 	private final Set< UUID > holding = new HashSet< UUID >();
+	private final Set< UUID > mining = new HashSet< UUID >();
 	private final Map< UUID, ItemStack[] > heldItems = new HashMap< UUID, ItemStack[] >();
 	private SpaaaceCore plugin;
 	
@@ -54,11 +59,54 @@ public class InteractiveManager {
 			GunsmokeRepresentable representable = plugin.getItemManager().get( uuid );
 			if ( representable instanceof GunsmokeInteractive ) {
 				GunsmokeInteractive interactive = ( GunsmokeInteractive ) representable;
-				new HoldRightClickEvent( interactive, interactive.getTicksSinceRightClick() ).callEvent();
+				if ( interactive.isHoldingRightClick() ) {
+					new HoldRightClickEvent( interactive, interactive.getTicksSinceRightClick() ).callEvent();
+				} else {
+					it.remove();
+					new ReleaseRightClickEvent( interactive ).callEvent();
+				}
 			} else {
 				it.remove();
 			}
 		}
+		
+		for ( Iterator< UUID > it = mining.iterator(); it.hasNext(); ) {
+			UUID uuid = it.next();
+			GunsmokeRepresentable representable = plugin.getItemManager().get( uuid );
+			if ( representable instanceof GunsmokeEntityWrapperPlayer ) {
+				GunsmokeEntityWrapperPlayer wrapper = ( GunsmokeEntityWrapperPlayer ) representable;
+				Player player = wrapper.getEntity();
+				// If the player isn't actually mining anything
+				if ( !plugin.getHandler().isMiningBlock( player ) ) {
+					// First check if their wrapper has updated
+					if ( !wrapper.isMiningBlock() ) {
+						wrapper.setMining( null );
+						// If so, then set it
+						new ReleaseLeftClickEvent( wrapper ).callEvent();
+					}
+
+					it.remove();
+					continue;
+				} else {
+					new HoldLeftClickEvent( wrapper, wrapper.getTicksSinceMineStart() ).callEvent();
+				}
+				
+			} else if ( representable instanceof GunsmokeInteractive ) {
+				GunsmokeInteractive interactive = ( GunsmokeInteractive ) representable;
+				
+				if ( !interactive.isHoldingRightClick() ) {
+					interactive.setIsHoldingRightClick( false );
+					new HoldLeftClickEvent( interactive, interactive.getTicksSinceMineStart() ).callEvent();
+				} else {
+					it.remove();
+					new ReleaseLeftClickEvent( interactive ).callEvent();
+				}
+			} else {
+				it.remove();
+			}
+		}
+		
+		// Detect left clicking and call appropriate events
 		
 		// Update the holding for all the players
 		// If it's not a player, then it'll have to be done manually by whatever other implementation
@@ -118,14 +166,31 @@ public class InteractiveManager {
 				GunsmokeRepresentable rep = plugin.getItemManager().getRepresentable( item );
 				if ( rep instanceof GunsmokeItem ) {
 					GunsmokeItem gItem = ( GunsmokeItem ) rep;
-					gItem.onUnequip();
+					gItem.unequip();
 				}
 			}
 		}
 	}
 	
-	public void setHolding( GunsmokeInteractive entity, boolean isHolding ) {
-		GunsmokeInteractive interactive = ( GunsmokeInteractive ) entity;
+	public void setMining( GunsmokeInteractive interactive, Location mining ) {
+		boolean wasHolding = interactive.isMiningBlock();
+		if ( wasHolding ^ ( mining != null ) ) {
+			if ( mining != null ) {
+				new LeftClickBlockEvent( interactive, mining ).callEvent();
+			} else {
+				new ReleaseLeftClickEvent( interactive ).callEvent();
+			}
+		}
+
+		if ( mining != null ) {
+			this.mining.add( interactive.getUUID() );
+		} else {
+			this.mining.remove( interactive.getUUID() );
+		}
+		interactive.setMining( mining );
+	}
+	
+	public void setHolding( GunsmokeInteractive interactive, boolean isHolding ) {
 		boolean wasHolding = interactive.isHoldingRightClick();
 		if ( wasHolding ^ isHolding ) {
 			if ( isHolding ) {
@@ -136,9 +201,9 @@ public class InteractiveManager {
 		}
 
 		if ( isHolding ) {
-			holding.add( entity.getUUID() );
+			holding.add( interactive.getUUID() );
 		} else {
-			holding.remove( entity.getUUID() );
+			holding.remove( interactive.getUUID() );
 		}
 		interactive.setIsHoldingRightClick( isHolding );
 	}
@@ -151,10 +216,26 @@ public class InteractiveManager {
 		return false;
 	}
 	
+	public Location getMiningLocation( HumanEntity entity ) {
+		GunsmokeEntityWrapper wrapper = plugin.getItemManager().getEntityWrapper( entity );
+		if ( wrapper instanceof GunsmokeInteractive ) {
+			return ( ( GunsmokeInteractive ) wrapper ).getMiningBlock();
+		}
+		return null;
+	}
+	
 	public int getTickHoldingTime( HumanEntity player ) {
 		GunsmokeEntityWrapper wrapper = plugin.getItemManager().getEntityWrapper( player );
 		if ( wrapper instanceof GunsmokeInteractive ) {
 			return ( ( GunsmokeInteractive ) wrapper ).getTicksSinceRightClick();
+		}
+		return 0;
+	}
+	
+	public int getTickMiningTime( HumanEntity player ) {
+		GunsmokeEntityWrapper wrapper = plugin.getItemManager().getEntityWrapper( player );
+		if ( wrapper instanceof GunsmokeInteractive ) {
+			return ( ( GunsmokeInteractive ) wrapper ).getTicksSinceMineStart();
 		}
 		return 0;
 	}

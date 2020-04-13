@@ -39,6 +39,7 @@ import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.entity.bukkit.Gunsmoke
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.entity.npc.GunsmokeNPC;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.player.AdvancementOpenEvent;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.player.DropItemEvent;
+import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.player.PlayerJumpEvent;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.tracking.GunsmokeEntityTracker;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.util.CollisionResultBlock;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.util.BukkitUtil;
@@ -62,6 +63,7 @@ import net.minecraft.server.v1_15_R1.PacketPlayInAdvancements.Status;
 import net.minecraft.server.v1_15_R1.PacketPlayInBlockDig;
 import net.minecraft.server.v1_15_R1.PacketPlayInBlockDig.EnumPlayerDigType;
 import net.minecraft.server.v1_15_R1.PacketPlayInBlockPlace;
+import net.minecraft.server.v1_15_R1.PacketPlayInFlying;
 import net.minecraft.server.v1_15_R1.PacketPlayOutAbilities;
 import net.minecraft.server.v1_15_R1.PacketPlayOutBlockBreak;
 import net.minecraft.server.v1_15_R1.PacketPlayOutBlockBreakAnimation;
@@ -74,6 +76,7 @@ import net.minecraft.server.v1_15_R1.PacketPlayOutUpdateAttributes;
 import net.minecraft.server.v1_15_R1.PacketPlayOutWorldBorder;
 import net.minecraft.server.v1_15_R1.PlayerChunkMap.EntityTracker;
 import net.minecraft.server.v1_15_R1.PlayerConnection;
+import net.minecraft.server.v1_15_R1.PlayerInteractManager;
 import net.minecraft.server.v1_15_R1.RayTrace;
 import net.minecraft.server.v1_15_R1.Vec3D;
 import net.minecraft.server.v1_15_R1.VoxelShape;
@@ -108,6 +111,9 @@ public class NMSHandler implements PacketHandler {
 	
 	private static Field SIMPLECOMMANDMAP_COMMANDS;
 	private static Method CRAFTSERVER_SYNCCOMMANDS;
+	
+	private static Field INTERACT_BLOCKPOS;
+	private static Field INTERACT_ISDESTROYING;
 	
 	static {
 		try {
@@ -173,7 +179,12 @@ public class NMSHandler implements PacketHandler {
 			
 			CRAFTSERVER_SYNCCOMMANDS = CraftServer.class.getDeclaredMethod( "syncCommands" );
 			CRAFTSERVER_SYNCCOMMANDS.setAccessible( true );
-        } catch ( NoSuchFieldException | SecurityException | IllegalArgumentException | NoSuchMethodException e ) {
+			
+			INTERACT_BLOCKPOS = PlayerInteractManager.class.getDeclaredField( "g" );
+			INTERACT_BLOCKPOS.setAccessible( true );
+			INTERACT_ISDESTROYING = PlayerInteractManager.class.getDeclaredField( "e" );
+			INTERACT_ISDESTROYING.setAccessible( true );
+		} catch ( NoSuchFieldException | SecurityException | IllegalArgumentException | NoSuchMethodException e ) {
 			e.printStackTrace();
 		}
 	}
@@ -194,6 +205,8 @@ public class NMSHandler implements PacketHandler {
 			return handleBlockDigPacket( reciever, ( PacketPlayInBlockDig ) packet );
 		} else if ( packet instanceof PacketPlayInAdvancements ) {
 			return handleAdvancementPacket( reciever, ( PacketPlayInAdvancements ) packet );
+		} else if ( packet instanceof PacketPlayInFlying ) {
+			return handleFlyingPacket( reciever, ( PacketPlayInFlying ) packet );
 		}
 		return packet;
 	}
@@ -247,14 +260,22 @@ public class NMSHandler implements PacketHandler {
 					return null;
 				}
 			}
-		} else if ( action == EnumPlayerDigType.START_DESTROY_BLOCK ) {
 		} else if ( action == EnumPlayerDigType.ABORT_DESTROY_BLOCK || action == EnumPlayerDigType.STOP_DESTROY_BLOCK ) {
+			if ( entity instanceof GunsmokeInteractive ) {
+				plugin.getInteractiveManager().setMining( ( GunsmokeInteractive ) entity, null );
+			}
 		}
 		return packet;
 	}
 	
-	private Packet< ? > handleDig( Player player ) {
-		return null;
+	private Packet< ? > handleFlyingPacket( Player player, PacketPlayInFlying packet ) {
+		if ( player.isOnGround() && !packet.b() && packet.b( player.getLocation().getY() ) - player.getLocation().getY() > 0 ) {
+			GunsmokeEntityWrapper entity = plugin.getItemManager().getEntityWrapper( player );
+			if ( entity instanceof GunsmokeInteractive ) {
+				new PlayerJumpEvent( ( GunsmokeInteractive ) entity ).callEvent();
+			}
+		}
+		return packet;
 	}
 	
 	@Override
@@ -377,6 +398,18 @@ public class NMSHandler implements PacketHandler {
 	@Override
 	public GunsmokeEntityTracker getEntityTrackerFor( org.bukkit.entity.Entity bukkitEntity ) {
 		return entityTracker.getEntityTrackerFor( bukkitEntity );
+	}
+	
+	@Override
+	public boolean isMiningBlock( Player player ) {
+		PlayerInteractManager manager = ( ( CraftPlayer ) player ).getHandle().playerInteractManager;
+		try {
+			boolean isBreaking = ( boolean ) INTERACT_ISDESTROYING.get( manager );
+			return isBreaking;
+		} catch ( IllegalArgumentException | IllegalAccessException e ) {
+			e.printStackTrace();
+			return false;
+		}
 	}
 	
 	@Override

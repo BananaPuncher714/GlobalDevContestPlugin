@@ -50,6 +50,8 @@ public interface PacketHandler {
 	void setAir( Player player, int ticks );
 	void damageBlock( Location location, int stage );
 	
+	boolean isMiningBlock( Player player );
+	
 	boolean isRealPlayer( Player player );
 	GunsmokeNPC getNPC( Player player );
 	GunsmokeNPC spawnNPC( World bukkitWorld, String name, String skin );

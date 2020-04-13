@@ -9,12 +9,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockFromToEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
@@ -47,10 +45,13 @@ import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.entity.Gunsmoke
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.entity.GunsmokeEntityUnloadEvent;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.player.AdvancementOpenEvent;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.player.DropItemEvent;
+import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.player.HoldLeftClickEvent;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.player.HoldRightClickEvent;
+import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.player.LeftClickBlockEvent;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.player.LeftClickEntityEvent;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.player.LeftClickEvent;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.player.PlayerUpdateItemEvent;
+import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.player.ReleaseLeftClickEvent;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.player.ReleaseRightClickEvent;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.player.RightClickEntityEvent;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.player.RightClickEvent;
@@ -151,17 +152,17 @@ public class ItemManager implements Listener {
 		if ( player instanceof Storeable ) {
 			Storeable storeable = ( Storeable ) player;
 			
+			// TODO Add compatibility check with other slots
 			for ( ItemSlot slot : storeable.getSlots() ) {
 				ItemStack currentItem = slot.getItem();
 				GunsmokeRepresentable current = getRepresentable( currentItem );
 				GunsmokeItem previous = slot.getRepresentable();
 				
-				
 				if ( previous != current ) {
 					// Swap out the old one and bring in the new
 					// Ignore dual wielding for now, we can add a more universal "compatible with" check later
 					if ( previous != null && previous.isEquipped() ) {
-						previous.onUnequip();
+						previous.unequip();
 					}
 					
 					// Not null check
@@ -170,9 +171,11 @@ public class ItemManager implements Listener {
 
 						// Unequip from old and equip to current
 						if ( itemCurrent.isEquipped() ) {
-							itemCurrent.onUnequip();
+							itemCurrent.unequip();
 						}
-						itemCurrent.onEquip( player, slot );
+						if ( player instanceof GunsmokeRepresentable ) {
+							itemCurrent.equip( ( GunsmokeRepresentable ) player, slot );
+						}
 						
 						slot.setRepresentable( itemCurrent );
 					} else {
@@ -237,45 +240,25 @@ public class ItemManager implements Listener {
 	
 	@EventHandler( priority = EventPriority.HIGHEST )
 	private void onEvent( PlayerSwapHandItemsEvent event ) {
-		// TODO fix this and make it conform to the new api
-		Player player = event.getPlayer();
+		GunsmokeInteractive player = ( GunsmokeInteractive ) getEntityWrapper( event.getPlayer() );
 		EnumEventResult result = EnumEventResult.SKIPPED;
 		
-		// First scan through the items and see if there's anything which cancels this event
-		for ( EquipmentSlot slot : SpaaaceUtil.getEquipmentSlotOrdering() ) {
-			GunsmokeRepresentable representable = getRepresentable( player, slot );
+		if ( player instanceof Storeable ) {
+			Storeable storeable = ( Storeable ) player;
 			
-			if ( representable instanceof GunsmokeItemInteractable ) {
-				GunsmokeItemInteractable interactable = ( GunsmokeItemInteractable ) representable;
-				
-				if ( interactable.isEquipped() ) {
-					result = interactable.onClick( event );
+			for ( ItemSlot slot : storeable.getSlots() ) {
+				GunsmokeRepresentable item = getRepresentable( slot.getItem() );
+				if ( item instanceof GunsmokeItemInteractable ) {
+					GunsmokeItemInteractable interactable = ( GunsmokeItemInteractable ) item;
+					
+					if ( interactable.isEquipped() ) {
+						result = interactable.onClick( event );
+					}
 				}
-			}
-			if ( result == EnumEventResult.COMPLETED || result == EnumEventResult.STOPPED ) {
-				break;
-			}
-		}
-		
-		// If so, then cancel this
-		if ( result == EnumEventResult.COMPLETED ) {
-			event.setCancelled( true );
-		} else {
-			// Get what's in both hands
-			GunsmokeRepresentable mainRepresentable = getRepresentable( player, EquipmentSlot.HAND );
-			GunsmokeRepresentable offRepresentable = getRepresentable( player, EquipmentSlot.OFF_HAND );
-			
-			// Check if the two items can be dual wielded
-			// Specifically for players
-			// TODO make this check more universal for any Storeable objects
-			if ( mainRepresentable instanceof GunsmokeItem && offRepresentable instanceof GunsmokeItem ) {
-				GunsmokeItem main = ( GunsmokeItem ) mainRepresentable;
-				GunsmokeItem off = ( GunsmokeItem ) offRepresentable;
-				if ( !main.canDualWieldWith( off ) || !off.canDualWieldWith( main )  ) {
-					// This shouldn't actually ever get called, since it would mean
-					// they'd have to be together in the first place,
-					// which, should be caught as soon as one of them got equipped
-					event.setCancelled( true );
+				
+				// Continue if it's skipped or processed
+				if ( !( result == EnumEventResult.SKIPPED || result == EnumEventResult.PROCESSED ) ) {
+					break;
 				}
 			}
 		}
@@ -283,6 +266,84 @@ public class ItemManager implements Listener {
 	
 	@EventHandler( priority = EventPriority.HIGHEST )
 	private void onEvent( LeftClickEntityEvent event ) {
+		GunsmokeInteractive player = event.getEntity();
+		EnumEventResult result = EnumEventResult.SKIPPED;
+		
+		if ( player instanceof Storeable ) {
+			Storeable storeable = ( Storeable ) player;
+			
+			for ( ItemSlot slot : storeable.getSlots() ) {
+				GunsmokeRepresentable item = getRepresentable( slot.getItem() );
+				if ( item instanceof GunsmokeItemInteractable ) {
+					GunsmokeItemInteractable interactable = ( GunsmokeItemInteractable ) item;
+					
+					if ( interactable.isEquipped() ) {
+						result = interactable.onClick( event );
+					}
+				}
+				
+				// Continue if it's skipped or processed
+				if ( !( result == EnumEventResult.SKIPPED || result == EnumEventResult.PROCESSED ) ) {
+					break;
+				}
+			}
+		}
+	}
+	
+	@EventHandler( priority = EventPriority.HIGHEST )
+	private void onEvent( LeftClickBlockEvent event ) {
+		GunsmokeInteractive player = event.getEntity();
+		EnumEventResult result = EnumEventResult.SKIPPED;
+		
+		if ( player instanceof Storeable ) {
+			Storeable storeable = ( Storeable ) player;
+			
+			for ( ItemSlot slot : storeable.getSlots() ) {
+				GunsmokeRepresentable item = getRepresentable( slot.getItem() );
+				if ( item instanceof GunsmokeItemInteractable ) {
+					GunsmokeItemInteractable interactable = ( GunsmokeItemInteractable ) item;
+					
+					if ( interactable.isEquipped() ) {
+						result = interactable.onClick( event );
+					}
+				}
+				
+				// Continue if it's skipped or processed
+				if ( !( result == EnumEventResult.SKIPPED || result == EnumEventResult.PROCESSED ) ) {
+					break;
+				}
+			}
+		}
+	}
+	
+	@EventHandler( priority = EventPriority.HIGHEST )
+	private void onEvent( HoldLeftClickEvent event ) {
+		GunsmokeInteractive player = event.getEntity();
+		EnumEventResult result = EnumEventResult.SKIPPED;
+		
+		if ( player instanceof Storeable ) {
+			Storeable storeable = ( Storeable ) player;
+			
+			for ( ItemSlot slot : storeable.getSlots() ) {
+				GunsmokeRepresentable item = getRepresentable( slot.getItem() );
+				if ( item instanceof GunsmokeItemInteractable ) {
+					GunsmokeItemInteractable interactable = ( GunsmokeItemInteractable ) item;
+					
+					if ( interactable.isEquipped() ) {
+						result = interactable.onClick( event );
+					}
+				}
+				
+				// Continue if it's skipped or processed
+				if ( !( result == EnumEventResult.SKIPPED || result == EnumEventResult.PROCESSED ) ) {
+					break;
+				}
+			}
+		}
+	}
+	
+	@EventHandler( priority = EventPriority.HIGHEST )
+	private void onEvent( ReleaseLeftClickEvent event ) {
 		GunsmokeInteractive player = event.getEntity();
 		EnumEventResult result = EnumEventResult.SKIPPED;
 		
@@ -558,11 +619,6 @@ public class ItemManager implements Listener {
 //			}
 //		}
 //	}
-	
-	@EventHandler( priority = EventPriority.HIGHEST )
-	private void onEvent( BlockBreakEvent event ) {
-		event.setCancelled( true );
-	}
 	
 	@EventHandler( priority = EventPriority.HIGHEST )
 	private void onEvent( BlockPlaceEvent event ) {
