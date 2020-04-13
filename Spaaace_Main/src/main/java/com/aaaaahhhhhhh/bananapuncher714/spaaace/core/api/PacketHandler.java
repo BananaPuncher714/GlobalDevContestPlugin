@@ -51,6 +51,7 @@ public interface PacketHandler {
 	void damageBlock( Location location, int stage );
 	
 	boolean isMiningBlock( Player player );
+	void breakBlock( Player player, Location location );
 	
 	boolean isRealPlayer( Player player );
 	GunsmokeNPC getNPC( Player player );

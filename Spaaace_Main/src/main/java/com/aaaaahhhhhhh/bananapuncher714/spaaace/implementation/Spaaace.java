@@ -1,5 +1,6 @@
 package com.aaaaahhhhhhh.bananapuncher714.spaaace.implementation;
 
+import org.bukkit.Bukkit;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
 
@@ -34,5 +35,7 @@ public class Spaaace {
 		.applyTo( command );
 		
 		core.getHandler().registerCommand( command );
+		
+		Bukkit.getPluginManager().registerEvents( new TemporaryListener(), core );
 	}
 }

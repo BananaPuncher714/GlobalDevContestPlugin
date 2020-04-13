@@ -16,6 +16,9 @@ public class GunsmokeBlockDamageEvent extends GunsmokeBlockEvent implements Canc
 	
 	public GunsmokeBlockDamageEvent( GunsmokeBlock block, double damage, GunsmokeRepresentable damager, DamageType type ) {
 		super( block );
+		this.damage = damage;
+		this.damager = damager;
+		this.type = type;
 	}
 	
 	public double getDamage() {

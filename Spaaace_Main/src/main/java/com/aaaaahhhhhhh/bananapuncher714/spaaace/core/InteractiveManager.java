@@ -16,6 +16,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.GunsmokeRepresentable;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.entity.GunsmokeInteractive;
@@ -80,14 +82,13 @@ public class InteractiveManager {
 				if ( !plugin.getHandler().isMiningBlock( player ) ) {
 					// First check if their wrapper has updated
 					if ( !wrapper.isMiningBlock() ) {
-						wrapper.setMining( null );
 						// If so, then set it
 						new ReleaseLeftClickEvent( wrapper ).callEvent();
 					}
 
 					it.remove();
 					continue;
-				} else {
+				} else if ( wrapper.isMiningBlock() ) {
 					new HoldLeftClickEvent( wrapper, wrapper.getTicksSinceMineStart() ).callEvent();
 				}
 				
@@ -150,6 +151,27 @@ public class InteractiveManager {
 				}
 
 				items[ index++ ] = newItem; 
+			}
+		}
+		
+		// Also, apply fast digging and slow digging
+		for ( Player player : Bukkit.getOnlinePlayers() ) {
+			boolean foundHaste = false;
+			boolean foundFatigue = false;
+			for ( PotionEffect effect : player.getActivePotionEffects() ) {
+				if ( effect.getType() == PotionEffectType.FAST_DIGGING && effect.getAmplifier() == 255 ) {
+					foundHaste = true;
+				}
+				if ( effect.getType() == PotionEffectType.FAST_DIGGING && effect.getAmplifier() == 8 ) {
+					foundFatigue = true;
+				}
+			}
+			
+			if ( !foundHaste ) {
+				player.addPotionEffect( new PotionEffect( PotionEffectType.FAST_DIGGING, 20000000, 255, true, false, false ), true );
+			}
+			if ( !foundFatigue ) {
+				player.addPotionEffect( new PotionEffect( PotionEffectType.SLOW_DIGGING, 20000000, 8, true, false, false ), true );
 			}
 		}
 	}

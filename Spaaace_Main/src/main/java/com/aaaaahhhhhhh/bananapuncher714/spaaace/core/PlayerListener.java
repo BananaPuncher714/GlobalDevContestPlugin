@@ -13,6 +13,7 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockDamageEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityPotionEffectEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerAnimationEvent;
@@ -37,6 +38,9 @@ public class PlayerListener implements Listener {
 	private SpaaaceCore plugin;
 	
 	private Map< UUID, Integer > interactLastCalled = new HashMap< UUID, Integer >();
+	
+	// Allow us to specify when to breaking blocks is allowed
+	private boolean allowBlockBreak = false;
 	
 	protected PlayerListener( SpaaaceCore plugin ) {
 		this.plugin = plugin;
@@ -177,18 +181,29 @@ public class PlayerListener implements Listener {
 			Player player = event.getPlayer();
 			GunsmokeRepresentable representable = plugin.getItemManager().get( player.getUniqueId() );
 			if ( representable instanceof GunsmokeInteractive ) {
+				Bukkit.getScheduler().runTaskLater( plugin, () -> {
 				plugin.getInteractiveManager().setMining( ( GunsmokeInteractive ) representable, event.getBlock().getLocation() );
+				}, 1 );
 			}
 		}
 	}
 	
 	@EventHandler
 	private void onBlockBreakEvent( BlockBreakEvent event ) {
-		Inventory inventory = Bukkit.createInventory( null, 9 );
-		event.getPlayer().openInventory( inventory );
-		event.getPlayer().closeInventory();
+		if ( allowBlockBreak ) {
+			return;
+		}
 		
-		event.setCancelled( true );
+		// Allow creative players to do ground breaking things
+		if ( event.getPlayer().getGameMode() == GameMode.CREATIVE ) {
+			plugin.getBlockManager().destroy( event.getBlock().getLocation() );
+		} else {
+			Inventory inventory = Bukkit.createInventory( null, 9 );
+			event.getPlayer().openInventory( inventory );
+			event.getPlayer().closeInventory();
+		
+			event.setCancelled( true );
+		}
 	}
 	
 	/*
@@ -206,5 +221,13 @@ public class PlayerListener implements Listener {
 		interactLastCalled.put( player.getUniqueId(), currentTick );
 		
 		return canCall;
+	}
+
+	public boolean isAllowBlockBreak() {
+		return allowBlockBreak;
+	}
+
+	public void setAllowBlockBreak( boolean allowBlockBreak ) {
+		this.allowBlockBreak = allowBlockBreak;
 	}
 }

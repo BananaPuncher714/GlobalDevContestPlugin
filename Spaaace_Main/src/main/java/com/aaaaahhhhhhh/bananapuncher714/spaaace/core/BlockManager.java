@@ -147,11 +147,12 @@ public class BlockManager {
 		case WHITE_STAINED_GLASS:
 		case JUKEBOX:
 		case OBSIDIAN: return -1;
-		case STONE: return 5;
+		case STONE: return 75;
 		case DIRT:
-		case GRASS: return 2;
-		case PRISMARINE_BRICKS: return 20;
-		default: return 1;
+		case GRASS: return 40;
+		case GLASS: return 1;
+		case PRISMARINE_BRICKS: return 200;
+		default: return 60;
 		}
 	}
 }

@@ -413,6 +413,12 @@ public class NMSHandler implements PacketHandler {
 	}
 	
 	@Override
+	public void breakBlock( Player player, Location location ) {
+		PlayerInteractManager manager = ( ( CraftPlayer ) player ).getHandle().playerInteractManager;
+		manager.breakBlock( new BlockPosition( location.getBlockX(), location.getBlockY(), location.getBlockZ() ) );
+	}
+	
+	@Override
 	public boolean isRealPlayer( Player player ) {
 		return ( ( CraftPlayer ) player ).getHandle().getClass().equals( EntityPlayer.class );
 	}

@@ -7,6 +7,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Projectile;
@@ -34,6 +35,7 @@ import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.InteractableDamage;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.RegenType;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.Storeable;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.Tickable;
+import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.block.GunsmokeBlock;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.entity.GunsmokeEntity;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.entity.GunsmokeInteractive;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.entity.bukkit.GunsmokeEntityWrapper;
@@ -338,6 +340,14 @@ public class ItemManager implements Listener {
 				if ( !( result == EnumEventResult.SKIPPED || result == EnumEventResult.PROCESSED ) ) {
 					break;
 				}
+			}
+		}
+		
+		// Mine the block here
+		if ( result == EnumEventResult.SKIPPED || result == EnumEventResult.PROCESSED ) {
+			Location loc = player.getMiningBlock();
+			if ( player instanceof GunsmokeRepresentable ) {
+				plugin.getBlockManager().damage( loc, 1, ( GunsmokeRepresentable ) player, DamageType.VANILLA );
 			}
 		}
 	}

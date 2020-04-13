@@ -22,6 +22,8 @@ public class SpaaaceCore extends JavaPlugin {
 	private InteractiveManager playerManager;
 	private NPCManager npcManager;
 	
+	private PlayerListener listener;
+	
 	@Override
 	public void onEnable() {
 		handler = ReflectionUtil.getNewPacketHandlerInstance();
@@ -54,7 +56,9 @@ public class SpaaaceCore extends JavaPlugin {
 		playerManager = new InteractiveManager( this );
 		npcManager = new NPCManager( this );
 		
-		Bukkit.getPluginManager().registerEvents( new PlayerListener( this ), this );
+		listener = new PlayerListener( this );
+		
+		Bukkit.getPluginManager().registerEvents( listener, this );
 		
 		Bukkit.getScheduler().runTaskTimer( this, this::run, 0, 1 );
 		
@@ -98,5 +102,13 @@ public class SpaaaceCore extends JavaPlugin {
 	
 	public NPCManager getNPCManager() {
 		return npcManager;
+	}
+	
+	public void setAllowBreakBlock( boolean set ) {
+		listener.setAllowBlockBreak( set );
+	}
+	
+	public boolean isAllowBreakBlock() {
+		return listener.isAllowBlockBreak();
 	}
 }
