@@ -6,6 +6,8 @@ import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.DamageType;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.EnumTickResult;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.Tickable;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.block.GunsmokeBlock;
+import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.entity.bukkit.GunsmokeEntityWrapperPlayer;
+import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.util.SpaaaceUtil;
 
 public class RegeneratingGunsmokeBlock extends GunsmokeBlock implements Tickable {
 	protected int regenDelay = 1;

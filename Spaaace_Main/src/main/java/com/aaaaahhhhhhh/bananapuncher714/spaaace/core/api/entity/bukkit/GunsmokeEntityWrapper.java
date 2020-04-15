@@ -9,11 +9,14 @@ import org.bukkit.util.Vector;
 
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.EnumEventResult;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.EnumTickResult;
+import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.Gravitable;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.Nameable;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.entity.GunsmokeEntity;
+import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.entity.GunsmokeEntityChangeVelocityEvent;
 
-public class GunsmokeEntityWrapper extends GunsmokeEntity implements Nameable {
+public class GunsmokeEntityWrapper extends GunsmokeEntity implements Nameable, Gravitable {
 	protected Entity entity;
+	private double gravity = 1;
 	
 	public GunsmokeEntityWrapper( Entity entity ) {
 		this.entity = entity;
@@ -40,9 +43,19 @@ public class GunsmokeEntityWrapper extends GunsmokeEntity implements Nameable {
 	
 	@Override
 	public void setVelocity( Vector vector ) {
+		GunsmokeEntityChangeVelocityEvent event = new GunsmokeEntityChangeVelocityEvent( this, entity.getVelocity(), vector );
+		event.callEvent();
+		
+		vector = event.getNewVector();
+		
 		entity.setVelocity( vector );
 	}
 
+	@Override
+	public double getSpeed() {
+		return entity.getVelocity().length();
+	}
+	
 	@Override
 	public UUID getUUID() {
 		return entity.getUniqueId();
@@ -81,5 +94,16 @@ public class GunsmokeEntityWrapper extends GunsmokeEntity implements Nameable {
 	@Override
 	public void setName( String name ) {
 		entity.setCustomName( name );
+	}
+	
+	
+	@Override
+	public double getGravity() {
+		return gravity;
+	}
+
+	@Override
+	public void setGravity( double gravity ) {
+		this.gravity = gravity;
 	}
 }

@@ -21,6 +21,7 @@ public class SpaaaceCore extends JavaPlugin {
 	private BlockManager blockManager;
 	private InteractiveManager playerManager;
 	private NPCManager npcManager;
+	private GravityManager gravityManager;
 	
 	private PlayerListener listener;
 	
@@ -55,6 +56,7 @@ public class SpaaaceCore extends JavaPlugin {
 		blockManager = new BlockManager( this );
 		playerManager = new InteractiveManager( this );
 		npcManager = new NPCManager( this );
+		gravityManager = new GravityManager( this );
 		
 		listener = new PlayerListener( this );
 		

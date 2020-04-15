@@ -8,13 +8,18 @@ import java.util.Map.Entry;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Particle;
+import org.bukkit.block.Block;
 
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.DamageType;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.GunsmokeRepresentable;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.block.GunsmokeBlock;
+import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.block.VanillaMaterialData;
+import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.entity.bukkit.GunsmokeEntityWrapperPlayer;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.block.GunsmokeBlockBreakEvent;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.block.GunsmokeBlockCreateEvent;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.block.GunsmokeBlockDamageEvent;
+import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.util.SpaaaceUtil;
 
 public class BlockManager {
 	public static final int UPDATE_BLOCK_DELAY = 20 * 15;
@@ -59,6 +64,13 @@ public class BlockManager {
 			GunsmokeBlockBreakEvent breakEvent = new GunsmokeBlockBreakEvent( block, damager );
 			breakEvent.callEvent();
 			if ( !breakEvent.isCancelled() ) {
+				SpaaaceUtil.getPlugin().getBlockManager().playVanillaBlockBreak( location );
+				if ( damager instanceof GunsmokeEntityWrapperPlayer ) {
+					SpaaaceUtil.getPlugin().setAllowBreakBlock( true );
+					SpaaaceUtil.getPlugin().getHandler().breakBlock( ( ( GunsmokeEntityWrapperPlayer ) damager ).getEntity(), location );
+					SpaaaceUtil.getPlugin().setAllowBreakBlock( false );
+				}
+				
 				block.destroy();
 				blocks.remove( block.getLocation() );
 				plugin.getItemManager().remove( block.getUUID() );
@@ -145,15 +157,30 @@ public class BlockManager {
 		case LAVA:
 		case BEDROCK:
 		case BARRIER:
-		case WHITE_STAINED_GLASS:
-		case JUKEBOX:
-		case OBSIDIAN: return -1;
 		case STONE: return 75;
 		case DIRT:
 		case GRASS: return 40;
 		case GLASS: return 1;
 		case PRISMARINE_BRICKS: return 200;
-		default: return 60;
+		default: {
+			VanillaMaterialData vData = plugin.getHandler().getVanillaMaterialDataFor( material );
+			float hardness = vData.getStrength();
+			if ( hardness < 0 ) {
+				return hardness;
+			} else if ( hardness == 0 ) {
+				return 1;
+			}
+			// Hardness in ticks, multiplied by 5
+			return hardness * 20 * 5;
 		}
+		}
+	}
+	
+	public void playVanillaBlockBreak( Location location ) {
+		Block block = location.getBlock();
+		Material mat = block.getType();
+		VanillaMaterialData vData = plugin.getHandler().getVanillaMaterialDataFor( mat );
+		location.getWorld().spawnParticle( Particle.BLOCK_CRACK, location.clone().add( .5, .5, .5 ), 100, .25, .25, .25, block.getBlockData() );
+		SoundMixer.playSound( location, 15, vData.getSounds().getSound( "BREAK" ) );
 	}
 }

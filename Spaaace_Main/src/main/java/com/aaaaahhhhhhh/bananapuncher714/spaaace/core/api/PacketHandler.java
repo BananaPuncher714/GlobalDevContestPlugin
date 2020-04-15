@@ -3,6 +3,7 @@ package com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api;
 import java.util.List;
 
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Entity;
@@ -11,6 +12,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.SpaaaceCore;
+import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.block.VanillaMaterialData;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.entity.npc.GunsmokeNPC;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.tracking.GunsmokeEntityTracker;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.util.CollisionResultBlock;
@@ -49,6 +51,7 @@ public interface PacketHandler {
 	void playHurtAnimationFor( LivingEntity entity );
 	void setAir( Player player, int ticks );
 	void damageBlock( Location location, int stage );
+	VanillaMaterialData getVanillaMaterialDataFor( Material material );
 	
 	boolean isMiningBlock( Player player );
 	void breakBlock( Player player, Location location );

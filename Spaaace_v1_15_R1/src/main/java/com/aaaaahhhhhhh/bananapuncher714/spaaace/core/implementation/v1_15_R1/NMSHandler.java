@@ -15,6 +15,8 @@ import java.util.function.BiFunction;
 import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -27,19 +29,24 @@ import org.bukkit.craftbukkit.v1_15_R1.block.CraftBlock;
 import org.bukkit.craftbukkit.v1_15_R1.entity.CraftEntity;
 import org.bukkit.craftbukkit.v1_15_R1.entity.CraftLivingEntity;
 import org.bukkit.craftbukkit.v1_15_R1.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_15_R1.util.CraftMagicNumbers;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.material.MaterialData;
 import org.bukkit.util.BlockIterator;
 import org.bukkit.util.Vector;
 
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.SpaaaceCore;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.PacketHandler;
+import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.block.VanillaMaterialData;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.entity.GunsmokeInteractive;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.entity.bukkit.GunsmokeEntityWrapper;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.entity.npc.GunsmokeNPC;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.player.AdvancementOpenEvent;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.player.DropItemEvent;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.player.PlayerJumpEvent;
+import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.sound.SoundSet;
+import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.sound.SoundWave;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.tracking.GunsmokeEntityTracker;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.util.CollisionResultBlock;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.util.BukkitUtil;
@@ -55,6 +62,7 @@ import net.minecraft.server.v1_15_R1.EntityPlayer;
 import net.minecraft.server.v1_15_R1.Fluid;
 import net.minecraft.server.v1_15_R1.GenericAttributes;
 import net.minecraft.server.v1_15_R1.IBlockData;
+import net.minecraft.server.v1_15_R1.MinecraftKey;
 import net.minecraft.server.v1_15_R1.MinecraftServer;
 import net.minecraft.server.v1_15_R1.MovingObjectPositionBlock;
 import net.minecraft.server.v1_15_R1.Packet;
@@ -78,6 +86,8 @@ import net.minecraft.server.v1_15_R1.PlayerChunkMap.EntityTracker;
 import net.minecraft.server.v1_15_R1.PlayerConnection;
 import net.minecraft.server.v1_15_R1.PlayerInteractManager;
 import net.minecraft.server.v1_15_R1.RayTrace;
+import net.minecraft.server.v1_15_R1.SoundEffect;
+import net.minecraft.server.v1_15_R1.SoundEffectType;
 import net.minecraft.server.v1_15_R1.Vec3D;
 import net.minecraft.server.v1_15_R1.VoxelShape;
 import net.minecraft.server.v1_15_R1.WorldServer;
@@ -114,6 +124,11 @@ public class NMSHandler implements PacketHandler {
 	
 	private static Field INTERACT_BLOCKPOS;
 	private static Field INTERACT_ISDESTROYING;
+	
+	private static Field SOUNDEFFECT_KEY;
+	
+	private static Field SOUNDTYPE_BREAK;
+	private static Field SOUNDTYPE_HIT;
 	
 	static {
 		try {
@@ -184,6 +199,14 @@ public class NMSHandler implements PacketHandler {
 			INTERACT_BLOCKPOS.setAccessible( true );
 			INTERACT_ISDESTROYING = PlayerInteractManager.class.getDeclaredField( "e" );
 			INTERACT_ISDESTROYING.setAccessible( true );
+			
+			SOUNDEFFECT_KEY = SoundEffect.class.getDeclaredField( "a" );
+			SOUNDEFFECT_KEY.setAccessible( true );
+			
+			SOUNDTYPE_BREAK = SoundEffectType.class.getDeclaredField( "z" );
+			SOUNDTYPE_BREAK.setAccessible( true );
+			SOUNDTYPE_HIT = SoundEffectType.class.getDeclaredField( "C" );
+			SOUNDTYPE_HIT.setAccessible( true );
 		} catch ( NoSuchFieldException | SecurityException | IllegalArgumentException | NoSuchMethodException e ) {
 			e.printStackTrace();
 		}
@@ -393,6 +416,50 @@ public class NMSHandler implements PacketHandler {
 		PacketPlayOutBlockBreakAnimation packet = new PacketPlayOutBlockBreakAnimation( location.hashCode(), new BlockPosition( location.getBlockX(), location.getBlockY(), location.getBlockZ() ), stage );
 		
 		broadcastPacket( location.getWorld(), packet );
+	}
+	
+	@Override
+	public VanillaMaterialData getVanillaMaterialDataFor( Material material ) {
+		VanillaMaterialData vData = new VanillaMaterialData( material );
+		IBlockData data = CraftMagicNumbers.getBlock( new MaterialData( material ) );
+		
+		vData.setStrength( data.f( null, null ) );
+		SoundEffectType sound = data.r();
+		
+		float volume = sound.a();
+		float pitch = sound.b() - .2f;
+		SoundSet soundSet = new SoundSet();
+		try {
+			Sound breakSound = getSoundOf( ( SoundEffect ) SOUNDTYPE_BREAK.get( sound ) );
+			soundSet.setSound( "BREAK", new SoundWave( breakSound, volume, pitch ) );
+			
+			Sound stepSound = getSoundOf( sound.d() );
+			soundSet.setSound( "STEP", new SoundWave( stepSound, volume, pitch ) );
+			
+			Sound placeSound = getSoundOf( sound.e() );
+			soundSet.setSound( "PLACE", new SoundWave( placeSound, volume, pitch ) );
+			
+			Sound hitSound = getSoundOf( ( SoundEffect ) SOUNDTYPE_HIT.get( sound ) );
+			soundSet.setSound( "HIT", new SoundWave( hitSound, volume, pitch ) );
+			
+			Sound fallSound = getSoundOf( sound.g() );
+			soundSet.setSound( "FALL", new SoundWave( fallSound, volume, pitch ) );
+        } catch ( IllegalAccessException ex ) {
+            ex.printStackTrace();
+        }
+		vData.setSounds( soundSet );
+		
+		return vData;
+	}
+	
+	private Sound getSoundOf( SoundEffect effect ) {
+		try {
+			MinecraftKey key = ( MinecraftKey ) SOUNDEFFECT_KEY.get( effect );
+			return Sound.valueOf( key.getKey().replace( '.', '_' ).toUpperCase() );
+		} catch ( IllegalArgumentException | IllegalAccessException e ) {
+			e.printStackTrace();
+			return null;
+		}
 	}
 	
 	@Override

@@ -11,18 +11,18 @@ import io.github.bananapuncher714.nbteditor.NBTEditor;
 public abstract class GunsmokeItem extends GunsmokeRepresentable {
 	private final static Object[] CUSTOM = { "io", "github", "bananapuncher714", "operation", "gunsmoke", "item", "id" };
 	
-	protected GunsmokeRepresentable gunsmokeHolder;
+	protected GunsmokeRepresentable holder;
 	protected ItemSlot slot;
 	protected boolean isEquipped = false;
 	
 	public void equip( GunsmokeRepresentable gunsmokeEntity, ItemSlot slot ) {
-		this.gunsmokeHolder = gunsmokeEntity;
+		this.holder = gunsmokeEntity;
 		this.slot = slot;
 		isEquipped = true;
 	}
 	
 	public void unequip() {
-		gunsmokeHolder = null;
+		holder = null;
 		slot = null;
 		isEquipped = false;
 	}

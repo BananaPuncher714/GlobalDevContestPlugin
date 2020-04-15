@@ -39,24 +39,24 @@ public class TestItem extends GunsmokeItemInteractable {
 	
 	@Override
 	public EnumEventResult onClick( LeftClickBlockEvent event ) {
-		if ( gunsmokeHolder instanceof GunsmokeEntityWrapper ) {
-			( ( GunsmokeEntityWrapper ) gunsmokeHolder ).sendMessage( "LEFT CLICK BLOCK" );
+		if ( holder instanceof GunsmokeEntityWrapper ) {
+			( ( GunsmokeEntityWrapper ) holder ).sendMessage( "LEFT CLICK BLOCK" );
 		}
 		return super.onClick( event );
 	}
 	
 	@Override
 	public EnumEventResult onClick( HoldLeftClickEvent event ) {
-		if ( gunsmokeHolder instanceof GunsmokeEntityWrapper ) {
-			( ( GunsmokeEntityWrapper ) gunsmokeHolder ).sendMessage( "HOLDING LEFT CLICK" );
+		if ( holder instanceof GunsmokeEntityWrapper ) {
+			( ( GunsmokeEntityWrapper ) holder ).sendMessage( "HOLDING LEFT CLICK" );
 		}
 		return super.onClick( event );
 	}
 	
 	@Override
 	public EnumEventResult onClick( ReleaseLeftClickEvent event ) {
-		if ( gunsmokeHolder instanceof GunsmokeEntityWrapper ) {
-			( ( GunsmokeEntityWrapper ) gunsmokeHolder ).sendMessage( "RELEASE BLOCK" );
+		if ( holder instanceof GunsmokeEntityWrapper ) {
+			( ( GunsmokeEntityWrapper ) holder ).sendMessage( "RELEASE BLOCK" );
 		}
 		return super.onClick( event );
 	}

@@ -8,13 +8,15 @@ import org.bukkit.util.Vector;
 
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.EnumTickResult;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.GunsmokeRepresentable;
+import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.LocationTrackable;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.Tickable;
+import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.entity.GunsmokeEntityChangeVelocityEvent;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.entity.GunsmokeEntityDamageEvent;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.entity.GunsmokeEntityRegenEvent;
 
 import net.md_5.bungee.api.chat.BaseComponent;
 
-public abstract class GunsmokeEntity extends GunsmokeRepresentable implements Tickable {
+public abstract class GunsmokeEntity extends GunsmokeRepresentable implements Tickable, LocationTrackable {
 	protected Location location;
 	protected Vector velocity;
 	protected double speed;
@@ -37,6 +39,7 @@ public abstract class GunsmokeEntity extends GunsmokeRepresentable implements Ti
 		return EnumTickResult.CONTINUE;
 	}
 	
+	@Override
 	public Location getLocation() {
 		return location.clone();
 	}
@@ -50,6 +53,14 @@ public abstract class GunsmokeEntity extends GunsmokeRepresentable implements Ti
 	}
 	
 	public void setVelocity( Vector vector ) {
+		if ( velocity == null ) {
+			velocity = new Vector( 0, 0, 0 );
+		}
+		GunsmokeEntityChangeVelocityEvent event = new GunsmokeEntityChangeVelocityEvent( this, velocity, vector );
+		event.callEvent();
+		
+		vector = event.getNewVector();
+		
 		velocity = vector.clone().normalize();
 		speed = vector.length();
 	}
@@ -85,7 +96,7 @@ public abstract class GunsmokeEntity extends GunsmokeRepresentable implements Ti
 	public void setMaxHealth( double maxHealth ) {
 		this.maxHealth = maxHealth;
 	}
-	
+
 	public boolean isValid() {
 		return health > 0;
 	}
