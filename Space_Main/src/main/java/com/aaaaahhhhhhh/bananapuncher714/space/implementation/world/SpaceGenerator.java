@@ -278,8 +278,8 @@ public class SpaceGenerator extends ChunkGenerator {
 	
 	private double[] getSinkholeLocation( int x, int z ) {
 		// Gives it in height, distance, x, and z
-		double[][] neighbors = vGenerator.getClosestNeighbor( x, z, 1 / 1024.0 );
-		double noise = vGenerator.noise( x, z, 1 / 1024.0 );
+		double[][] neighbors = vGenerator.getClosestNeighbor( x, z, 1 / 2048.0 );
+		double noise = vGenerator.noise( x, z, 1 / 2048.0 );
 		
 		return new double[] { neighbors[ 0 ][ 2 ], neighbors[ 0 ][ 3 ], noise };
 	}

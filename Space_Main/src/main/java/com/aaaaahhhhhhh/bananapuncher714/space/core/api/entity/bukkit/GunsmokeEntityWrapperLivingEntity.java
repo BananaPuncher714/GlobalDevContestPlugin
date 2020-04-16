@@ -153,7 +153,7 @@ public class GunsmokeEntityWrapperLivingEntity extends GunsmokeEntityWrapper imp
 
 	@Override
 	public void setAir( int air ) {
-		entity.setRemainingAir( air );
+		entity.setRemainingAir( Math.max( 0, air ) );
 	}
 
 	@Override
@@ -163,6 +163,6 @@ public class GunsmokeEntityWrapperLivingEntity extends GunsmokeEntityWrapper imp
 
 	@Override
 	public void setMaxAir( int air ) {
-		entity.setMaximumAir( air );
+		entity.setMaximumAir( Math.max( 0, air ) );
 	}
 }

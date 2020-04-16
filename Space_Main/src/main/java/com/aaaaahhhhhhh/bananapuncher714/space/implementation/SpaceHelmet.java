@@ -28,7 +28,7 @@ import net.md_5.bungee.api.chat.TextComponent;
 public class SpaceHelmet extends GunsmokeItemInteractable implements Tickable {
 	protected int amount;
 	protected int max;
-	protected int refillRate = 1;
+	protected int refillRate = 5;
 	
 	public SpaceHelmet( int amount, int max ) {
 		this.amount = amount;
@@ -78,13 +78,11 @@ public class SpaceHelmet extends GunsmokeItemInteractable implements Tickable {
 	@Override
 	public EnumEventResult onClick( GunsmokeAirChangeEvent event ) {
 		if ( holder instanceof Breathable && slot instanceof ItemSlotEquipment && ( ( ItemSlotEquipment ) slot ).getSlot() == EquipmentSlot.HEAD ) {
-			return EnumEventResult.SKIPPED;
-		}
-
-		if ( event.getAir() < 0 && amount > 0 ) {
-			int providedAir = Math.min( amount, -event.getAir() );
-			amount -= providedAir;
-			event.setAir( event.getAir() + providedAir );
+			if ( event.getAir() < 0 && amount > 0 ) {
+				int providedAir = Math.min( amount, Math.abs( event.getAir() ) );
+				amount -= providedAir;
+				event.setAir( event.getAir() + providedAir );
+			}
 		}
 		return EnumEventResult.SKIPPED;
 	}

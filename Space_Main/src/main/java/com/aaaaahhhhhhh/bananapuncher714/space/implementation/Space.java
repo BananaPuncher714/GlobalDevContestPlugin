@@ -206,8 +206,11 @@ public class Space {
 
 				GunsmokeEntityWrapperLivingEntity wrapper = ( GunsmokeEntityWrapperLivingEntity ) core.getItemManager().getEntityWrapper( player );
 				Location loc = player.getEyeLocation();
-				if ( loc.getBlock().getBiome() == Biome.SNOWY_TUNDRA ) {
-					
+				Biome biome = loc.getBlock().getBiome();
+				if ( loc.getY() > 255 || biome == Biome.SNOWY_TUNDRA ) {
+					core.getInteractiveManager().addAir( wrapper, -1 );
+				} else if ( biome == Biome.FLOWER_FOREST || biome == Biome.MUSHROOM_FIELDS ) {
+					core.getInteractiveManager().addAir( wrapper, 10 );
 				}
 				
 				if ( currentTick % 600 == 0 ) {

@@ -76,6 +76,11 @@ public class SpaceCore extends JavaPlugin {
 		playerManager.tick();
 		itemManager.tick();
 		handler.tick();
+		
+		// Internal stuff
+		for ( Player player : Bukkit.getOnlinePlayers() ) {
+			handler.setAir( player, player.getRemainingAir() );
+		}
 	}
 	
 	@Override

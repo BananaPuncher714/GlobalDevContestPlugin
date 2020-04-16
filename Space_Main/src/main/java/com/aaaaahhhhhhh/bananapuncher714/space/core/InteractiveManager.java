@@ -305,12 +305,16 @@ public class InteractiveManager {
 		}
 	}
 	
+	public void addAir( Breathable breathable, int amount ) {
+		setAir( breathable, breathable.getAir() + amount );
+	}
+	
 	public void setAir( Breathable breathable, int amount ) {
-		GunsmokeAirChangeEvent event = new GunsmokeAirChangeEvent( breathable, amount );
+		GunsmokeAirChangeEvent event = new GunsmokeAirChangeEvent( breathable, amount - breathable.getAir() );
 		event.callEvent();
 		
 		if ( !event.isCancelled() ) {
-			breathable.setAir( event.getAir() );
+			breathable.setAir( event.getAir() + breathable.getAir() );
 		}
 	}
 }

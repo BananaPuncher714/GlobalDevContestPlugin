@@ -227,10 +227,12 @@ public class PlayerListener implements Listener {
 		if ( ent instanceof LivingEntity ) {
 			GunsmokeEntityWrapperLivingEntity wrapper = ( GunsmokeEntityWrapperLivingEntity ) plugin.getItemManager().getEntityWrapper( ent );
 
-			GunsmokeAirChangeEvent airEvent = new GunsmokeAirChangeEvent( wrapper, ( ( LivingEntity ) ent ).getRemainingAir() - event.getAmount() );
+			// Change to
+			GunsmokeAirChangeEvent airEvent = new GunsmokeAirChangeEvent( wrapper, event.getAmount() - wrapper.getAir() );
 			airEvent.callEvent();
 			
-			event.setAmount( ( ( LivingEntity ) ent ).getRemainingAir() - event.getAmount() );
+			// Add modifier
+			event.setAmount( wrapper.getAir() + airEvent.getAir() );
 			event.setCancelled( airEvent.isCancelled() );
 		}
 	}
