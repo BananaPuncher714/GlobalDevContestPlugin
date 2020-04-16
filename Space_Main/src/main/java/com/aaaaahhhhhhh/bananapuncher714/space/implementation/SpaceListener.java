@@ -2,6 +2,7 @@ package com.aaaaahhhhhhh.bananapuncher714.space.implementation;
 
 import org.bukkit.Location;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Player;
 import org.bukkit.entity.Rabbit;
 import org.bukkit.entity.Rabbit.Type;
 import org.bukkit.event.EventHandler;
@@ -54,11 +55,13 @@ public class SpaceListener implements Listener {
 	
 	@EventHandler
 	private void onEvent( PlayerChangedWorldEvent event ) {
-		GunsmokeEntityWrapper wrapper = SpaceUtil.getEntity( event.getPlayer() );
+		Player player = event.getPlayer();
+		GunsmokeEntityWrapper wrapper = SpaceUtil.getEntity( player );
 		Location location = event.getPlayer().getLocation();
 		if ( SpaceUtil.isSpaceWorld( location.getWorld() ) ) {
 			wrapper.setGravity( .3 );
 		} else {
+			player.setCompassTarget( player.getBedSpawnLocation() != null ? player.getBedSpawnLocation() : player.getWorld().getSpawnLocation() );
 			wrapper.setGravity( 1 );
 		}
 	}

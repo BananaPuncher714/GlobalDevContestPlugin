@@ -24,7 +24,8 @@ import com.aaaaahhhhhhh.bananapuncher714.space.implementation.world.SpaceGenerat
 
 public class Spaaace {
 	private SpaceCore core;
-
+	private int currentTick = 0;
+	
 	public Spaaace( SpaceCore core ) {
 		this.core = core;
 
@@ -148,6 +149,7 @@ public class Spaaace {
 	}
 	
 	private void tick() {
+		currentTick++;
 		// Make sure other worlds don't get Earth in the sky
 		for ( World world : Bukkit.getWorlds() ) {
 			long fullTime = world.getFullTime();
@@ -162,6 +164,7 @@ public class Spaaace {
 			}
 		}
 		
+		// Teleport players who reach past 500
 		for ( Player player : Bukkit.getOnlinePlayers() ) {
 			Location location = player.getLocation();
 			if ( location.getY() > 500 ) {
@@ -182,6 +185,21 @@ public class Spaaace {
 						location.setWorld( teleportTo );
 						player.teleport( location );
 					}
+				}
+			}
+		}
+		
+		// Minor space related event
+		for ( Player player : Bukkit.getOnlinePlayers() ) {
+			Location location = player.getLocation();
+
+			if ( SpaceUtil.isSpaceWorld( location.getWorld() ) ) {
+				SpaceGenerator generator = ( SpaceGenerator ) player.getWorld().getGenerator();
+				if ( currentTick % 600 == 0 ) {
+					Pair< Double, Double > coords = generator.getSinkholeCoords( location.getBlockX(), location.getBlockZ() );
+					player.setCompassTarget( new Location( player.getWorld(), coords.getFirst(), 0, coords.getSecond() ) );
+					
+					// Update the player's compass
 				}
 			}
 		}
