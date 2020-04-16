@@ -53,17 +53,17 @@ public class SpaceGenerator extends ChunkGenerator {
 		CRATER_WALL_MATERIALS.put( Material.ICE, 1 );
 	}
 	
-	SimplexNoiseGenerator generator = new SimplexNoiseGenerator( 8443 );
-	SimplexNoiseGenerator generator2 = new SimplexNoiseGenerator( 42 );
-	SimplexNoiseGenerator generator3 = new SimplexNoiseGenerator( 137 );
+	SimplexNoiseGenerator generator;
+	SimplexNoiseGenerator generator2;
+	SimplexNoiseGenerator generator3;
 	
-	SimplexNoiseGenerator generator4 = new SimplexNoiseGenerator( 66432 );
-	SimplexNoiseGenerator generator5 = new SimplexNoiseGenerator( 101325 );
+	SimplexNoiseGenerator generator4;
+	SimplexNoiseGenerator generator5;
 	
-	SimplexNoiseGenerator generator6 = new SimplexNoiseGenerator( 3331 );
+	SimplexNoiseGenerator generator6;
 	
-	VoronoiNoiseGenerator vGenerator = new VoronoiNoiseGenerator( 8443, false );
-	VoronoiNoiseGenerator vGenerator2 = new VoronoiNoiseGenerator( 66432, false );
+	VoronoiNoiseGenerator vGenerator;
+	VoronoiNoiseGenerator vGenerator2;
 	
 	private int craterRadius = 100;
 	private int craterSlopeRadius = 150;
@@ -76,12 +76,18 @@ public class SpaceGenerator extends ChunkGenerator {
 	private int craterRadiusTotal = craterRadius + craterSlopeRadius + craterWallRadius;
 	private int craterRadiusSquared = craterRadiusTotal * craterRadiusTotal;
 	
-	public static void main( String[] args ) {
-		SpaceGenerator generator = new SpaceGenerator();
+	public SpaceGenerator( long seed ) {
+		generator = new SimplexNoiseGenerator( seed * 8443 );
+		generator2 = new SimplexNoiseGenerator( seed * 42 );
+		generator3 = new SimplexNoiseGenerator( seed * 137 );
 		
-		double[] hole = generator.getSinkholeLocation( -199, -297 );
+		generator4 = new SimplexNoiseGenerator( seed * 66432 );
+		generator5 = new SimplexNoiseGenerator( seed * 101325 );
 		
-		System.out.println( "Coords: " + hole[ 0 ] + " : " + hole[ 1 ] );
+		generator6 = new SimplexNoiseGenerator( seed * 3331 );
+		
+		vGenerator = new VoronoiNoiseGenerator( seed * 8443, false );
+		vGenerator2 = new VoronoiNoiseGenerator( seed * 66432, false );
 	}
 	
 	public Pair< Double, Double > getSinkholeCoords( int x, int z ) {

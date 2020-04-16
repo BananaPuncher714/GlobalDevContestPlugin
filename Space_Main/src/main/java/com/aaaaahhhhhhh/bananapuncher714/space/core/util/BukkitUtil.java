@@ -214,7 +214,14 @@ public class BukkitUtil {
 		if ( player.isSwimming() || player.isGliding() ) {
 			return 300;
 		}
+		
 		double speed = 0;
+		if ( player.isSprinting() ) {
+			speed = 0.28061681155903295;
+		} else {
+			speed = 0.21585906784552433;
+		}
+		
 		
 		if ( player.hasPotionEffect( PotionEffectType.SPEED ) ) {
 			PotionEffect effect = player.getPotionEffect( PotionEffectType.SPEED );

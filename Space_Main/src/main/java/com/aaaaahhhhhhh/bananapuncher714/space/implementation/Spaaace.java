@@ -2,6 +2,7 @@ package com.aaaaahhhhhhh.bananapuncher714.space.implementation;
 
 import org.bukkit.Bukkit;
 import org.bukkit.GameRule;
+import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.World.Environment;
 import org.bukkit.WorldCreator;
@@ -83,7 +84,7 @@ public class Spaaace {
 		.defaultTo( ( sender, args, params ) -> {
 			if ( Bukkit.getWorld( "space" ) == null ) {
 				WorldCreator creator = new WorldCreator( "space" )
-						.generator( new SpaceGenerator() )
+						.generator( new SpaceGenerator( Bukkit.getWorld( "world" ).getSeed() ) )
 						.environment( Environment.NORMAL )
 						.type( WorldType.LARGE_BIOMES );
 			
@@ -128,6 +129,19 @@ public class Spaaace {
 		.applyTo( sinkholeCommand );
 		core.getHandler().registerCommand( sinkholeCommand );
 
+		if ( Bukkit.getWorld( "space" ) == null ) {
+			WorldCreator creator = new WorldCreator( "space" )
+					.generator( new SpaceGenerator( Bukkit.getWorld( "world" ).getSeed() ) )
+					.environment( Environment.NORMAL )
+					.type( WorldType.LARGE_BIOMES );
+		
+			World world = Bukkit.getServer().createWorld( creator );
+			world.setGameRule( GameRule.DO_DAYLIGHT_CYCLE, false );
+			world.setTime( 18000 );
+			world.setGameRule( GameRule.DO_WEATHER_CYCLE, false );
+			world.setWeatherDuration( 0 );
+		}
+		
 		Bukkit.getPluginManager().registerEvents( new SpaceListener(), core );
 		
 		Bukkit.getScheduler().runTaskTimer( core, this::tick, 0, 1 );
@@ -136,10 +150,38 @@ public class Spaaace {
 	private void tick() {
 		// Make sure other worlds don't get Earth in the sky
 		for ( World world : Bukkit.getWorlds() ) {
-			if ( SpaceUtil.isSpaceWorld( world ) ) {
-				long fullTime = world.getFullTime();
-				if ( fullTime >= 0 && fullTime <= 24000 ) {
+			long fullTime = world.getFullTime();
+			if ( !SpaceUtil.isSpaceWorld( world ) ) {
+				if ( fullTime >= 0 && fullTime < 24000 ) {
 					world.setFullTime( fullTime + 24000 );
+				}
+			} else {
+				if ( fullTime < 0 || fullTime >= 24000 ) {
+					world.setFullTime( ( ( fullTime % 24000 ) + 24000 ) % 24000 ); 
+				}
+			}
+		}
+		
+		for ( Player player : Bukkit.getOnlinePlayers() ) {
+			Location location = player.getLocation();
+			if ( location.getY() > 500 ) {
+				World world = location.getWorld();
+				if ( world.getEnvironment() == Environment.NORMAL ) {
+					
+					World teleportTo = Bukkit.getWorld( "world" );
+					if ( !SpaceUtil.isSpaceWorld( world ) ) {
+						// Allow space travel only at night
+						if ( world.getTime() > 14000 && world.getTime() < 22000 ) {
+							teleportTo = Bukkit.getWorld( "space" );
+						}
+					}
+					
+					// Give the worlds a 1:1 ratio
+					if ( teleportTo != null ) {
+						location.setY( 400 );
+						location.setWorld( teleportTo );
+						player.teleport( location );
+					}
 				}
 			}
 		}

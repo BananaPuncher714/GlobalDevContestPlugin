@@ -116,6 +116,14 @@ public class GravityManager {
 			vector.setY( vector.getY() / delay );
 			vector.setZ( vector.getZ() / delay );
 
+			double maxSpeed = BukkitUtil.getMaxHorizontalSpeedFor( player );
+			Vector flat = vector.clone().setY( 0 );
+			if ( flat.length() > maxSpeed ) {
+				flat.normalize().multiply( maxSpeed );
+				vector.setX( flat.getX() );
+				vector.setY( flat.getZ() );
+			}
+			
 			if ( !player.isOnGround() && !core.getHandler().isInFluid( player ) ) {
 				onGround.remove( player.getUniqueId() );
 				Vector prev = lastPlayerVelocity.get( player.getUniqueId() );
@@ -134,7 +142,6 @@ public class GravityManager {
 				onGround.add( player.getUniqueId() );
 				// The player just landed on the ground. Stop them from moving faster somehow?
 			}
-			System.out.println( vector.clone().setY( 0 ).length() );
 			
 			lastPlayerVelocity.put( player.getUniqueId(), vector );
 		}
@@ -160,7 +167,7 @@ public class GravityManager {
 				if ( !entity.isOnGround() && wrapper.getGravity() != 1 ) {
 					if ( entity instanceof Player ) {
 						Player player = ( Player ) entity;
-						if ( player.getGameMode() == GameMode.CREATIVE || player.isFlying() ) {
+						if ( player.getGameMode() == GameMode.CREATIVE || player.isFlying() || player.isGliding() ) {
 							continue;
 						}
 					}

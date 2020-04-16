@@ -78,7 +78,7 @@ public class SpaceCore extends JavaPlugin {
 	
 	@Override
 	public ChunkGenerator getDefaultWorldGenerator( String worldName, String id ) {
-		return new SpaceGenerator();
+		return new SpaceGenerator( id.hashCode() );
 	}
 	
 	public TinyProtocol getProtocol() {

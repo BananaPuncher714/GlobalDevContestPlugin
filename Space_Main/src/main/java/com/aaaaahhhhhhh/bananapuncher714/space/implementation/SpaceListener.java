@@ -33,7 +33,7 @@ public class SpaceListener implements Listener {
 		Location location = event.getLocation();
 		if ( SpaceUtil.isSpaceWorld( location.getWorld() ) ) {
 			if ( event.getEntityType() == EntityType.SPIDER ) {
-				event.setCancelled( true );
+				// Spawn a rabbit for each spider
 				Rabbit rabbit = location.getWorld().spawn( location, Rabbit.class );
 				rabbit.setRabbitType( Type.THE_KILLER_BUNNY );
 			}
