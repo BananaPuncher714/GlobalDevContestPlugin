@@ -29,9 +29,12 @@ import org.bukkit.craftbukkit.v1_15_R1.block.CraftBlock;
 import org.bukkit.craftbukkit.v1_15_R1.entity.CraftEntity;
 import org.bukkit.craftbukkit.v1_15_R1.entity.CraftLivingEntity;
 import org.bukkit.craftbukkit.v1_15_R1.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_15_R1.inventory.CraftItemStack;
 import org.bukkit.craftbukkit.v1_15_R1.util.CraftMagicNumbers;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.material.MaterialData;
 import org.bukkit.util.BlockIterator;
 import org.bukkit.util.Vector;
@@ -88,6 +91,7 @@ import net.minecraft.server.v1_15_R1.PlayerInteractManager;
 import net.minecraft.server.v1_15_R1.RayTrace;
 import net.minecraft.server.v1_15_R1.SoundEffect;
 import net.minecraft.server.v1_15_R1.SoundEffectType;
+import net.minecraft.server.v1_15_R1.TagsFluid;
 import net.minecraft.server.v1_15_R1.Vec3D;
 import net.minecraft.server.v1_15_R1.VoxelShape;
 import net.minecraft.server.v1_15_R1.WorldServer;
@@ -463,6 +467,17 @@ public class NMSHandler implements PacketHandler {
 	}
 	
 	@Override
+	public float getVanillaDestroySpeed( ItemStack item, Material material ) {
+		float speed = 1;
+		if ( item != null ) {
+			IBlockData data = CraftMagicNumbers.getBlock( new MaterialData( material ) );
+			net.minecraft.server.v1_15_R1.ItemStack nmsItem = CraftItemStack.asNMSCopy( item );
+			speed = nmsItem.a( data );
+		}
+		return speed;
+	}
+	
+	@Override
 	public GunsmokeEntityTracker getEntityTrackerFor( org.bukkit.entity.Entity bukkitEntity ) {
 		return entityTracker.getEntityTrackerFor( bukkitEntity );
 	}
@@ -477,6 +492,12 @@ public class NMSHandler implements PacketHandler {
 			e.printStackTrace();
 			return false;
 		}
+	}
+	
+	@Override
+	public boolean isInFluid( Entity entity ) {
+		net.minecraft.server.v1_15_R1.Entity nmsEntity = ( ( CraftEntity ) entity ).getHandle();
+		return nmsEntity.a( TagsFluid.WATER ) || nmsEntity.a( TagsFluid.LAVA );
 	}
 	
 	@Override

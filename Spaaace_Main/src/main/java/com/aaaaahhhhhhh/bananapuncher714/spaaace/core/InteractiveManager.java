@@ -113,6 +113,10 @@ public class InteractiveManager {
 		// Update the holding for all the players
 		// If it's not a player, then it'll have to be done manually by whatever other implementation
 		for ( Player player : Bukkit.getOnlinePlayers() ) {
+			if ( player.isDead() ) {
+				heldItems.remove( player.getUniqueId() );
+				continue;
+			}
 			GunsmokeEntityWrapperPlayer wrapper = ( GunsmokeEntityWrapperPlayer ) plugin.getItemManager().getEntityWrapper( player );
 			ItemStack[] items = heldItems.get( player.getUniqueId() );
 			if ( items == null ) {

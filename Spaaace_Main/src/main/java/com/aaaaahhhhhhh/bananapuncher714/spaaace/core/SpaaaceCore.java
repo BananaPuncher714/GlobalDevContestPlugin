@@ -2,12 +2,14 @@ package com.aaaaahhhhhhh.bananapuncher714.spaaace.core;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.generator.ChunkGenerator;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.PacketHandler;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.tinyprotocol.TinyProtocol;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.util.ReflectionUtil;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.implementation.Spaaace;
+import com.aaaaahhhhhhh.bananapuncher714.spaaace.implementation.world.SpaceGenerator;
 
 import io.netty.channel.Channel;
 
@@ -72,6 +74,11 @@ public class SpaaaceCore extends JavaPlugin {
 		playerManager.tick();
 		itemManager.tick();
 		handler.tick();
+	}
+	
+	@Override
+	public ChunkGenerator getDefaultWorldGenerator( String worldName, String id ) {
+		return new SpaceGenerator();
 	}
 	
 	public TinyProtocol getProtocol() {

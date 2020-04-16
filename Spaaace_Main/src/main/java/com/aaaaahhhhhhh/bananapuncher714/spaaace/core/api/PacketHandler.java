@@ -9,6 +9,7 @@ import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.SpaaaceCore;
@@ -52,8 +53,10 @@ public interface PacketHandler {
 	void setAir( Player player, int ticks );
 	void damageBlock( Location location, int stage );
 	VanillaMaterialData getVanillaMaterialDataFor( Material material );
+	float getVanillaDestroySpeed( ItemStack item, Material material );
 	
 	boolean isMiningBlock( Player player );
+	boolean isInFluid( Entity player );
 	void breakBlock( Player player, Location location );
 	
 	boolean isRealPlayer( Player player );

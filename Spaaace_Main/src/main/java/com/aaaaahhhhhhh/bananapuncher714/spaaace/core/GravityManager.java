@@ -1,10 +1,10 @@
 package com.aaaaahhhhhhh.bananapuncher714.spaaace.core;
 
 import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Queue;
 import java.util.Set;
 import java.util.UUID;
 
@@ -23,19 +23,25 @@ import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.util.Vector;
 
+import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.Pair;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.entity.GunsmokeEntity;
+import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.entity.GunsmokeInteractive;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.entity.bukkit.GunsmokeEntityWrapper;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.entity.bukkit.GunsmokeEntityWrapperPlayer;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.entity.GunsmokeEntityChangeVelocityEvent;
+import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.player.PlayerJumpEvent;
+import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.util.BukkitUtil;
 
 public class GravityManager {
 	private SpaaaceCore core;
 
-	private Map< UUID, Queue< Location > > positions = new HashMap< UUID, Queue< Location > >();
+	private Map< UUID, Deque< Pair< Location, Integer > > > positions = new HashMap< UUID, Deque< Pair< Location, Integer > > >();
 	private Set< UUID > onGround = new HashSet< UUID >();
 	private Map< UUID, Vector > lastVelocity = new HashMap< UUID, Vector >();
 	private Map< UUID, Vector > lastPlayerVelocity = new HashMap< UUID, Vector >();
 
+	int currentTick = 0;
+	
 	public GravityManager( SpaaaceCore core ) {
 		this.core = core;
 
@@ -77,21 +83,40 @@ public class GravityManager {
 	}
 
 	private void tick() {
+		// Minecraft physics are absolute garbage
 		for ( Player player : Bukkit.getOnlinePlayers() ) {
-			Queue< Location > locs = positions.getOrDefault( player.getUniqueId(), new ArrayDeque< Location >() );
-			locs.add( player.getLocation() );
+			Deque< Pair< Location, Integer > > locs = positions.getOrDefault( player.getUniqueId(), new ArrayDeque< Pair< Location, Integer > >() );
 			positions.put( player.getUniqueId(), locs );
-			while ( locs.size() > 5 ) locs.poll();
+			while ( locs.size() > 5 ) locs.pollLast();
 
+			// Get the most recent location that isn't equal to the current player's location
 			Location currentLoc = player.getLocation();
-			Location lastLoc = locs.peek();
+			currentLoc.setYaw( 0 );
+			currentLoc.setPitch( 0 );
+			Pair< Location, Integer > lastLoc = locs.peekFirst();
+			if ( lastLoc != null ) {
+				while ( !locs.isEmpty() && currentLoc.equals( lastLoc.getFirst() ) ) {
+					locs.pollFirst();
+					lastLoc = locs.peekFirst();
+				}
+			}
+			locs.addFirst( new Pair< Location, Integer >( currentLoc.clone(), currentTick ) );
+			
+			int delay = 1;
+			Location previousLocation;
+			if ( lastLoc == null ) {
+				previousLocation = currentLoc.clone();
+			} else {
+				previousLocation = lastLoc.getFirst();
+				delay = currentTick - lastLoc.getSecond();
+			}
+			
+			Vector vector = currentLoc.clone().subtract( previousLocation ).toVector();
+			vector.setX( vector.getX() / delay );
+			vector.setY( vector.getY() / delay );
+			vector.setZ( vector.getZ() / delay );
 
-			Vector vector = currentLoc.clone().subtract( lastLoc ).toVector();
-			vector.setX( vector.getX() / 4 );
-			vector.setY( vector.getY() / 4 );
-			vector.setZ( vector.getZ() / 4 );
-
-			if ( !player.isOnGround() ) {
+			if ( !player.isOnGround() && !core.getHandler().isInFluid( player ) ) {
 				onGround.remove( player.getUniqueId() );
 				Vector prev = lastPlayerVelocity.get( player.getUniqueId() );
 				if ( prev != null ) {
@@ -109,12 +134,23 @@ public class GravityManager {
 				onGround.add( player.getUniqueId() );
 				// The player just landed on the ground. Stop them from moving faster somehow?
 			}
+			
 			lastPlayerVelocity.put( player.getUniqueId(), vector );
 		}
+		currentTick++;
 
 		for ( World world : Bukkit.getWorlds() ) {
 			for ( Entity entity : world.getEntities() ) {
 				GunsmokeEntityWrapper wrapper = core.getItemManager().getEntityWrapper( entity );
+				
+				// Don't do anything if the entity is riding something
+				if ( entity.isInsideVehicle() ) {
+					continue;
+				}
+				
+				if ( core.getHandler().isInFluid( entity ) ) {
+					continue;
+				}
 				
 				if ( !entity.isOnGround() && wrapper.getGravity() != 1 ) {
 					if ( entity instanceof Player ) {

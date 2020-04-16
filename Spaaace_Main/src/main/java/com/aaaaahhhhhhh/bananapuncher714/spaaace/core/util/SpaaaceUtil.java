@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.Event;
@@ -21,6 +22,7 @@ import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.block.GunsmokeBlock;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.entity.GunsmokeEntity;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.entity.bukkit.GunsmokeEntityWrapper;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.util.CollisionResultBlock;
+import com.aaaaahhhhhhh.bananapuncher714.spaaace.implementation.world.SpaceGenerator;
 
 public final class SpaaaceUtil {
 	private static final SpaaaceCore PLUGIN;
@@ -93,6 +95,10 @@ public final class SpaaaceUtil {
 	
 	public static void damageBlockAt( Location location, double damage, GunsmokeRepresentable damager, DamageType type ) {
 		getPlugin().getBlockManager().damage( location, damage, damager, type );
+	}
+	
+	public static boolean isSpaceWorld( World world ) {
+		return world.getGenerator() instanceof SpaceGenerator;
 	}
 	
 	public static EquipmentSlot[] getEquipmentSlotOrdering() {

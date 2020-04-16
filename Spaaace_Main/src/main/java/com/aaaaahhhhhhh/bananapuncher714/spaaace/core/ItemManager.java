@@ -10,6 +10,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -35,7 +36,6 @@ import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.InteractableDamage;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.RegenType;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.Storeable;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.Tickable;
-import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.block.GunsmokeBlock;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.entity.GunsmokeEntity;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.entity.GunsmokeInteractive;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.entity.bukkit.GunsmokeEntityWrapper;
@@ -46,6 +46,7 @@ import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.block.GunsmokeB
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.entity.GunsmokeEntityDamageEvent;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.entity.GunsmokeEntityDeathEvent;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.entity.GunsmokeEntityDespawnEvent;
+import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.entity.GunsmokeEntityLoadEvent;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.entity.GunsmokeEntityUnloadEvent;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.player.AdvancementOpenEvent;
 import com.aaaaahhhhhhh.bananapuncher714.spaaace.core.api.events.player.DropItemEvent;
@@ -92,6 +93,10 @@ public class ItemManager implements Listener {
 	}
 	
 	public void register( GunsmokeRepresentable item ) {
+		if ( item instanceof GunsmokeEntity ) {
+			new GunsmokeEntityLoadEvent( ( GunsmokeEntity ) item ).callEvent();
+		}
+		
 		items.put( item.getUUID(), item );
 	}
 	
@@ -407,8 +412,21 @@ public class ItemManager implements Listener {
 		// Mine the block here
 		if ( result == EnumEventResult.SKIPPED || result == EnumEventResult.PROCESSED ) {
 			Location loc = player.getMiningBlock();
-			if ( player instanceof GunsmokeRepresentable ) {
-				plugin.getBlockManager().damage( loc, 1, ( GunsmokeRepresentable ) player, DamageType.VANILLA );
+			if ( player instanceof GunsmokeEntityWrapperPlayer ) {
+				GunsmokeEntityWrapperPlayer wrapper = ( GunsmokeEntityWrapperPlayer ) player;
+				
+				Player entity = wrapper.getEntity();
+				float breakMultiplier = plugin.getHandler().getVanillaDestroySpeed( entity.getInventory().getItemInMainHand(), loc.getBlock().getType() );
+
+				if ( plugin.getHandler().isInFluid( entity ) ) {
+					breakMultiplier /= 5;
+				}
+				
+				if ( !entity.isOnGround() ) {
+					breakMultiplier /= 5;
+				}
+				
+				plugin.getBlockManager().damage( loc, breakMultiplier, ( GunsmokeRepresentable ) player, DamageType.VANILLA );
 			}
 		}
 	}
