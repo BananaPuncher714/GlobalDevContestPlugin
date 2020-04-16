@@ -3,6 +3,7 @@ package com.aaaaahhhhhhh.bananapuncher714.space.core.api.item;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.EnumEventResult;
+import com.aaaaahhhhhhh.bananapuncher714.space.core.api.events.GunsmokeAirChangeEvent;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.events.GunsmokeGravityChangeEvent;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.events.block.GunsmokeBlockBreakEvent;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.events.block.GunsmokeBlockDamageEvent;
@@ -81,6 +82,10 @@ public abstract class GunsmokeItemInteractable extends GunsmokeItem {
 	}
 	
 	public EnumEventResult onClick( GunsmokeGravityChangeEvent event ) {
+		return EnumEventResult.SKIPPED;
+	}
+	
+	public EnumEventResult onClick( GunsmokeAirChangeEvent event ) {
 		return EnumEventResult.SKIPPED;
 	}
 }

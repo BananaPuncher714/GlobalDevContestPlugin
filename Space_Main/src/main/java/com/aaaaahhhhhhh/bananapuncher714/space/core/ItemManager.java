@@ -27,6 +27,7 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.projectiles.ProjectileSource;
 
+import com.aaaaahhhhhhh.bananapuncher714.space.core.api.Breathable;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.DamageType;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.EnumEventResult;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.EnumTickResult;
@@ -42,6 +43,7 @@ import com.aaaaahhhhhhh.bananapuncher714.space.core.api.entity.GunsmokeInteracti
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.entity.bukkit.GunsmokeEntityWrapper;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.entity.bukkit.GunsmokeEntityWrapperPlayer;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.entity.bukkit.GunsmokeEntityWrapperProjectile;
+import com.aaaaahhhhhhh.bananapuncher714.space.core.api.events.GunsmokeAirChangeEvent;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.events.GunsmokeGravityChangeEvent;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.events.block.GunsmokeBlockBreakEvent;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.events.block.GunsmokeBlockDamageEvent;
@@ -329,6 +331,32 @@ public class ItemManager implements Listener {
 					if ( !( result == EnumEventResult.SKIPPED || result == EnumEventResult.PROCESSED ) ) {
 						break;
 					}
+				}
+			}
+		}
+	}
+	
+	@EventHandler( priority = EventPriority.HIGHEST )
+	private void onEvent( GunsmokeAirChangeEvent event ) {
+		Breathable player = event.getBreathable();
+		EnumEventResult result = EnumEventResult.SKIPPED;
+		
+		if ( player instanceof Storeable ) {
+			Storeable storeable = ( Storeable ) player;
+			
+			for ( ItemSlot slot : storeable.getSlots() ) {
+				GunsmokeRepresentable item = getRepresentable( slot.getItem() );
+				if ( item instanceof GunsmokeItemInteractable ) {
+					GunsmokeItemInteractable interactable = ( GunsmokeItemInteractable ) item;
+					
+					if ( interactable.isEquipped() ) {
+						result = interactable.onClick( event );
+					}
+				}
+				
+				// Continue if it's skipped or processed
+				if ( !( result == EnumEventResult.SKIPPED || result == EnumEventResult.PROCESSED ) ) {
+					break;
 				}
 			}
 		}

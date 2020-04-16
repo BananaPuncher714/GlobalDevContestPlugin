@@ -19,11 +19,13 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
+import com.aaaaahhhhhhh.bananapuncher714.space.core.api.Breathable;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.GunsmokeRepresentable;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.entity.GunsmokeInteractive;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.entity.bukkit.GunsmokeEntityWrapper;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.entity.bukkit.GunsmokeEntityWrapperLivingEntity;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.entity.bukkit.GunsmokeEntityWrapperPlayer;
+import com.aaaaahhhhhhh.bananapuncher714.space.core.api.events.GunsmokeAirChangeEvent;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.events.player.HoldLeftClickEvent;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.events.player.HoldRightClickEvent;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.events.player.InstabreakBlockEvent;
@@ -300,6 +302,15 @@ public class InteractiveManager {
 		event.callEvent();
 		if ( event.isCancelled() ) {
 			parent.setCancelled( true );
+		}
+	}
+	
+	public void setAir( Breathable breathable, int amount ) {
+		GunsmokeAirChangeEvent event = new GunsmokeAirChangeEvent( breathable, amount );
+		event.callEvent();
+		
+		if ( !event.isCancelled() ) {
+			breathable.setAir( event.getAir() );
 		}
 	}
 }

@@ -119,7 +119,7 @@ public class ZipWrapper {
 	
 	private FileSystem getZipfs() throws IOException {
 		if ( zipfs == null ) {
-			zipfs = FileSystems.newFileSystem( Paths.get( zipFile.getAbsolutePath() ), null );
+			zipfs = FileSystems.newFileSystem( Paths.get( zipFile.getAbsolutePath() ), ( ClassLoader ) null );
 		}
 		return zipfs;
 	}

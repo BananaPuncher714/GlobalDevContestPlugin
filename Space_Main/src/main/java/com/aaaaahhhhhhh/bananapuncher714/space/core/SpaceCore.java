@@ -8,7 +8,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.PacketHandler;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.tinyprotocol.TinyProtocol;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.util.ReflectionUtil;
-import com.aaaaahhhhhhh.bananapuncher714.space.implementation.Spaaace;
+import com.aaaaahhhhhhh.bananapuncher714.space.implementation.Space;
 import com.aaaaahhhhhhh.bananapuncher714.space.implementation.world.SpaceGenerator;
 
 import io.netty.channel.Channel;
@@ -26,6 +26,8 @@ public class SpaceCore extends JavaPlugin {
 	private GravityManager gravityManager;
 	
 	private PlayerListener listener;
+	
+	private Space instance;
 	
 	@Override
 	public void onEnable() {
@@ -66,7 +68,7 @@ public class SpaceCore extends JavaPlugin {
 		
 		Bukkit.getScheduler().runTaskTimer( this, this::run, 0, 1 );
 		
-		new Spaaace( this );
+		instance = new Space( this );
 	}
 	
 	private void run() {
@@ -123,5 +125,9 @@ public class SpaceCore extends JavaPlugin {
 	
 	public boolean isAllowBreakBlock() {
 		return listener.isAllowBlockBreak();
+	}
+	
+	public Space getSpaceInstance() {
+		return instance;
 	}
 }

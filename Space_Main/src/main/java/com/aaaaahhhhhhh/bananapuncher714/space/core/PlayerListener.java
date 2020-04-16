@@ -6,12 +6,15 @@ import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockDamageEvent;
+import org.bukkit.event.entity.EntityAirChangeEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
@@ -26,6 +29,8 @@ import org.bukkit.inventory.Inventory;
 
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.GunsmokeRepresentable;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.entity.GunsmokeInteractive;
+import com.aaaaahhhhhhh.bananapuncher714.space.core.api.entity.bukkit.GunsmokeEntityWrapperLivingEntity;
+import com.aaaaahhhhhhh.bananapuncher714.space.core.api.events.GunsmokeAirChangeEvent;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.events.entity.GunsmokeEntityDeathEvent;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.events.entity.GunsmokeEntityDespawnEvent;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.events.player.PlayerUpdateItemEvent;
@@ -213,6 +218,20 @@ public class PlayerListener implements Listener {
 			event.getPlayer().closeInventory();
 		
 			event.setCancelled( true );
+		}
+	}
+	
+	@EventHandler
+	private void onAirChangeEvent( EntityAirChangeEvent event ) {
+		Entity ent = event.getEntity();
+		if ( ent instanceof LivingEntity ) {
+			GunsmokeEntityWrapperLivingEntity wrapper = ( GunsmokeEntityWrapperLivingEntity ) plugin.getItemManager().getEntityWrapper( ent );
+
+			GunsmokeAirChangeEvent airEvent = new GunsmokeAirChangeEvent( wrapper, ( ( LivingEntity ) ent ).getRemainingAir() - event.getAmount() );
+			airEvent.callEvent();
+			
+			event.setAmount( ( ( LivingEntity ) ent ).getRemainingAir() - event.getAmount() );
+			event.setCancelled( airEvent.isCancelled() );
 		}
 	}
 	

@@ -7,6 +7,7 @@ import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.EquipmentSlot;
 
+import com.aaaaahhhhhhh.bananapuncher714.space.core.api.Breathable;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.Encapsulator;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.Storeable;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.entity.GunsmokeInteractive;
@@ -16,7 +17,7 @@ import com.aaaaahhhhhhh.bananapuncher714.space.core.api.item.ItemSlot;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.item.ItemSlotEquipment;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.util.SpaceUtil;
 
-public class GunsmokeEntityWrapperLivingEntity extends GunsmokeEntityWrapper implements GunsmokeInteractive, Storeable {
+public class GunsmokeEntityWrapperLivingEntity extends GunsmokeEntityWrapper implements GunsmokeInteractive, Storeable, Breathable  {
 	protected LivingEntity entity;
 	protected int holdRightClickStart = 0;
 	protected boolean holdingRightClick = false;
@@ -143,5 +144,25 @@ public class GunsmokeEntityWrapperLivingEntity extends GunsmokeEntityWrapper imp
 		}
 		
 		return slots;
+	}
+	
+	@Override
+	public int getAir() {
+		return entity.getRemainingAir();
+	}
+
+	@Override
+	public void setAir( int air ) {
+		entity.setRemainingAir( air );
+	}
+
+	@Override
+	public int getMaxAir() {
+		return entity.getMaximumAir();
+	}
+
+	@Override
+	public void setMaxAir( int air ) {
+		entity.setMaximumAir( air );
 	}
 }

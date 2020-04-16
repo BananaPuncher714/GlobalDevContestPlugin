@@ -11,6 +11,7 @@ import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.entity.EntitySpawnEvent;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 
+import com.aaaaahhhhhhh.bananapuncher714.space.core.SpaceCore;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.DamageType;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.Gravitable;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.block.GunsmokeBlock;
@@ -22,6 +23,12 @@ import com.aaaaahhhhhhh.bananapuncher714.space.core.api.events.entity.GunsmokeEn
 import com.aaaaahhhhhhh.bananapuncher714.space.core.util.SpaceUtil;
 
 public class SpaceListener implements Listener {
+	private SpaceCore core;
+	
+	protected SpaceListener( SpaceCore core ) {
+		this.core = core;
+	}
+	
 	@EventHandler
 	private void onEvent( GunsmokeBlockCreateEvent event ) {
 		GunsmokeBlock block = event.getRepresentable();
@@ -48,7 +55,8 @@ public class SpaceListener implements Listener {
 		if ( SpaceUtil.isSpaceWorld( location.getWorld() ) ) {
 			if ( ent instanceof Gravitable ) {
 				Gravitable gEnt = ( Gravitable ) ent;
-				gEnt.setGravity( .3 );
+				
+				core.getGravityManager().setGravity( gEnt, .3 );
 			}
 		}
 	}
@@ -59,10 +67,10 @@ public class SpaceListener implements Listener {
 		GunsmokeEntityWrapper wrapper = SpaceUtil.getEntity( player );
 		Location location = event.getPlayer().getLocation();
 		if ( SpaceUtil.isSpaceWorld( location.getWorld() ) ) {
-			wrapper.setGravity( .3 );
+			core.getGravityManager().setGravity( wrapper, .3 );
 		} else {
 			player.setCompassTarget( player.getBedSpawnLocation() != null ? player.getBedSpawnLocation() : player.getWorld().getSpawnLocation() );
-			wrapper.setGravity( 1 );
+			core.getGravityManager().setGravity( wrapper, 1 );
 		}
 	}
 	

@@ -7,7 +7,10 @@ import org.bukkit.World;
 import org.bukkit.World.Environment;
 import org.bukkit.WorldCreator;
 import org.bukkit.WorldType;
+import org.bukkit.block.Biome;
 import org.bukkit.command.PluginCommand;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.generator.ChunkGenerator;
 
@@ -18,15 +21,16 @@ import com.aaaaahhhhhhh.bananapuncher714.space.core.api.command.executor.Command
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.command.validator.InputValidatorDouble;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.command.validator.sender.SenderValidatorPlayer;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.entity.bukkit.GunsmokeEntityWrapper;
+import com.aaaaahhhhhhh.bananapuncher714.space.core.api.entity.bukkit.GunsmokeEntityWrapperLivingEntity;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.util.BukkitUtil;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.util.SpaceUtil;
 import com.aaaaahhhhhhh.bananapuncher714.space.implementation.world.SpaceGenerator;
 
-public class Spaaace {
+public class Space {
 	private SpaceCore core;
 	private int currentTick = 0;
 	
-	public Spaaace( SpaceCore core ) {
+	public Space( SpaceCore core ) {
 		this.core = core;
 
 		PluginCommand spawnCommand = BukkitUtil.constructCommand( "spawnobserver" );
@@ -54,6 +58,10 @@ public class Spaaace {
 				DebugStick stick = new DebugStick();
 				core.getItemManager().register( stick );
 				player.getInventory().addItem( stick.getItem() );
+				
+				SpaceHelmet helmet = new SpaceHelmet( 250, 600 );
+				core.getItemManager().register( helmet );
+				player.getInventory().addItem( helmet.getItem() );
 				
 				//				Location location = player.getLocation();
 				//				
@@ -143,7 +151,7 @@ public class Spaaace {
 			world.setWeatherDuration( 0 );
 		}
 		
-		Bukkit.getPluginManager().registerEvents( new SpaceListener(), core );
+		Bukkit.getPluginManager().registerEvents( new SpaceListener( core ), core );
 		
 		Bukkit.getScheduler().runTaskTimer( core, this::tick, 0, 1 );
 	}
@@ -195,6 +203,13 @@ public class Spaaace {
 
 			if ( SpaceUtil.isSpaceWorld( location.getWorld() ) ) {
 				SpaceGenerator generator = ( SpaceGenerator ) player.getWorld().getGenerator();
+
+				GunsmokeEntityWrapperLivingEntity wrapper = ( GunsmokeEntityWrapperLivingEntity ) core.getItemManager().getEntityWrapper( player );
+				Location loc = player.getEyeLocation();
+				if ( loc.getBlock().getBiome() == Biome.SNOWY_TUNDRA ) {
+					
+				}
+				
 				if ( currentTick % 600 == 0 ) {
 					Pair< Double, Double > coords = generator.getSinkholeCoords( location.getBlockX(), location.getBlockZ() );
 					player.setCompassTarget( new Location( player.getWorld(), coords.getFirst(), 0, coords.getSecond() ) );
@@ -203,5 +218,29 @@ public class Spaaace {
 				}
 			}
 		}
+	}
+	
+	public boolean canBreath( Entity entity ) {
+		if ( core.getHandler().isInFluid( entity ) ) {
+			return false;
+		}
+		
+		World world = entity.getWorld();
+		if ( SpaceUtil.isSpaceWorld( world ) ) {
+			// Don't let them breath in the air I guess?
+			Location eyeLoc = entity.getLocation();
+			if ( entity instanceof LivingEntity ) {
+				eyeLoc = ( ( LivingEntity ) entity ).getEyeLocation();
+			}
+			
+			if ( eyeLoc.getY() > 255 ) {
+				return false;
+			}
+			
+			Biome biome = eyeLoc.getBlock().getBiome();
+			return biome == Biome.MUSHROOM_FIELDS || biome == Biome.FLOWER_FOREST;
+		}
+		
+		return true;
 	}
 }
