@@ -27,7 +27,7 @@ public class GunsmokeEntityChangeVelocityEvent extends GunsmokeEntityEvent {
 	public void setNewVector( Vector newVector ) {
 		this.newVector = newVector.clone();
 	}
-
+	
 	public static HandlerList getHandlerList() {
 	    return handlers;
 	}

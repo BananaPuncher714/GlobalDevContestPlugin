@@ -113,6 +113,10 @@ public class SpaceCore extends JavaPlugin {
 		return npcManager;
 	}
 	
+	public GravityManager getGravityManager() {
+		return gravityManager;
+	}
+	
 	public void setAllowBreakBlock( boolean set ) {
 		listener.setAllowBlockBreak( set );
 	}

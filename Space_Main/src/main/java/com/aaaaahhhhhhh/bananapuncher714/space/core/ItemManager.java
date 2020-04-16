@@ -30,6 +30,7 @@ import org.bukkit.projectiles.ProjectileSource;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.DamageType;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.EnumEventResult;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.EnumTickResult;
+import com.aaaaahhhhhhh.bananapuncher714.space.core.api.Gravitable;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.GunsmokeEntityWrapperFactory;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.GunsmokeRepresentable;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.InteractableDamage;
@@ -41,6 +42,7 @@ import com.aaaaahhhhhhh.bananapuncher714.space.core.api.entity.GunsmokeInteracti
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.entity.bukkit.GunsmokeEntityWrapper;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.entity.bukkit.GunsmokeEntityWrapperPlayer;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.entity.bukkit.GunsmokeEntityWrapperProjectile;
+import com.aaaaahhhhhhh.bananapuncher714.space.core.api.events.GunsmokeGravityChangeEvent;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.events.block.GunsmokeBlockBreakEvent;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.events.block.GunsmokeBlockDamageEvent;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.events.entity.GunsmokeEntityDamageEvent;
@@ -677,6 +679,32 @@ public class ItemManager implements Listener {
 			if ( off != null ) {
 				event.setCancelled( true );
 				return;
+			}
+		}
+	}
+	
+	@EventHandler( priority = EventPriority.HIGHEST )
+	private void onEvent( GunsmokeGravityChangeEvent event ) {
+		Gravitable player = event.getGravitable();
+		EnumEventResult result = EnumEventResult.SKIPPED;
+		
+		if ( player instanceof Storeable ) {
+			Storeable storeable = ( Storeable ) player;
+			
+			for ( ItemSlot slot : storeable.getSlots() ) {
+				GunsmokeRepresentable item = getRepresentable( slot.getItem() );
+				if ( item instanceof GunsmokeItemInteractable ) {
+					GunsmokeItemInteractable interactable = ( GunsmokeItemInteractable ) item;
+					
+					if ( interactable.isEquipped() ) {
+						result = interactable.onClick( event );
+					}
+				}
+				
+				// Continue if it's skipped or processed
+				if ( !( result == EnumEventResult.SKIPPED || result == EnumEventResult.PROCESSED ) ) {
+					break;
+				}
 			}
 		}
 	}

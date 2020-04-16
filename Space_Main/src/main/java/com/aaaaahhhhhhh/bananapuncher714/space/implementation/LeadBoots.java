@@ -2,7 +2,6 @@ package com.aaaaahhhhhhh.bananapuncher714.space.implementation;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
-import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -10,9 +9,8 @@ import org.bukkit.inventory.meta.ItemMeta;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.EnumEventResult;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.Gravitable;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.GunsmokeRepresentable;
-import com.aaaaahhhhhhh.bananapuncher714.space.core.api.InteractableDamage;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.entity.bukkit.GunsmokeEntityWrapperLivingEntity;
-import com.aaaaahhhhhhh.bananapuncher714.space.core.api.events.entity.GunsmokeEntityDamageEvent;
+import com.aaaaahhhhhhh.bananapuncher714.space.core.api.events.GunsmokeGravityChangeEvent;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.events.player.RightClickEvent;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.item.GunsmokeItem;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.item.GunsmokeItemInteractable;
@@ -34,6 +32,18 @@ public class LeadBoots extends GunsmokeItemInteractable {
 				event.setCancelled( true );
 				return EnumEventResult.COMPLETED;
 			}
+		}
+		return EnumEventResult.SKIPPED;
+	}
+	
+	@Override
+	public EnumEventResult onClick( GunsmokeGravityChangeEvent event ) {
+		if ( holder instanceof GunsmokeEntityWrapperLivingEntity ) {
+			if ( holder instanceof Gravitable && slot instanceof ItemSlotEquipment && ( ( ItemSlotEquipment ) slot ).getSlot() == EquipmentSlot.FEET ) {
+				oldGrav = event.getNewGravity();
+				event.setNewGravity( 1 );
+			}
+			return EnumEventResult.COMPLETED;
 		}
 		return EnumEventResult.SKIPPED;
 	}

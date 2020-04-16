@@ -23,11 +23,13 @@ import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.util.Vector;
 
+import com.aaaaahhhhhhh.bananapuncher714.space.core.api.Gravitable;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.Pair;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.entity.GunsmokeEntity;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.entity.GunsmokeInteractive;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.entity.bukkit.GunsmokeEntityWrapper;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.entity.bukkit.GunsmokeEntityWrapperPlayer;
+import com.aaaaahhhhhhh.bananapuncher714.space.core.api.events.GunsmokeGravityChangeEvent;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.events.entity.GunsmokeEntityChangeVelocityEvent;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.events.player.PlayerJumpEvent;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.util.BukkitUtil;
@@ -80,6 +82,15 @@ public class GravityManager {
 				}
 			}
 		}, core );
+	}
+	
+	public void setGravity( Gravitable entity, double newGrav ) {
+		GunsmokeGravityChangeEvent event = new GunsmokeGravityChangeEvent( entity, newGrav );
+		event.callEvent();
+		
+		if ( !event.isCancelled() ) {
+			entity.setGravity( event.getNewGravity() );
+		}
 	}
 
 	private void tick() {
