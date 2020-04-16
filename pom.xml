@@ -3,15 +3,15 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.aaaaahhhhhhh.bananapuncher714</groupId>
-	<artifactId>Spaaace_Master</artifactId>
+	<artifactId>Space_Master</artifactId>
 	<version>1</version>
 	<packaging>pom</packaging>
-	<name>Spaaace</name>
+	<name>Space</name>
 
 	<modules>
-		<module>Spaaace_Main</module>
-		<module>Spaaace_v1_15_R1</module>
-		<module>Spaaace</module>
+		<module>Space_Main</module>
+		<module>Space_v1_15_R1</module>
+		<module>Space</module>
 	</modules>
 
 	<build>
