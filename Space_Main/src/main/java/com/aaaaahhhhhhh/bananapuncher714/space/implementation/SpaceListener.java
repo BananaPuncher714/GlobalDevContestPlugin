@@ -12,11 +12,13 @@ import org.bukkit.event.entity.EntitySpawnEvent;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 
 import com.aaaaahhhhhhh.bananapuncher714.space.core.SpaceCore;
+import com.aaaaahhhhhhh.bananapuncher714.space.core.api.Breathable;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.DamageType;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.Gravitable;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.block.GunsmokeBlock;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.entity.GunsmokeEntity;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.entity.bukkit.GunsmokeEntityWrapper;
+import com.aaaaahhhhhhh.bananapuncher714.space.core.api.events.GunsmokeAirChangeEvent;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.events.block.GunsmokeBlockCreateEvent;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.events.entity.GunsmokeEntityDamageEvent;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.events.entity.GunsmokeEntityLoadEvent;
@@ -87,6 +89,19 @@ public class SpaceListener implements Listener {
 					event.setCancelled( true );
 				}
 				event.setDamage( damage );
+			}
+		}
+	}
+	
+	@EventHandler
+	private void onEvent( GunsmokeAirChangeEvent event ) {
+		Breathable breathable = event.getBreathable();
+		if ( breathable instanceof GunsmokeEntityWrapper ) {
+			GunsmokeEntityWrapper wrapper = ( GunsmokeEntityWrapper ) breathable;
+			if ( !core.getSpaceInstance().canBreath( wrapper.getEntity() ) ) {
+				if ( event.getAir() > 0 ) {
+					event.setCancelled( true );
+				}
 			}
 		}
 	}

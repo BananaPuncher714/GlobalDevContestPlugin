@@ -23,6 +23,8 @@ public class GunsmokeEntityWrapperLivingEntity extends GunsmokeEntityWrapper imp
 	protected boolean holdingRightClick = false;
 	protected int miningTimeStart = 0;
 	protected Location mining;
+	protected int airTicks = 300;
+	protected int maxAirTicks = 300;
 	
 	private Map< EquipmentSlot, GunsmokeItem > items = new HashMap< EquipmentSlot, GunsmokeItem >();
 	
@@ -148,21 +150,21 @@ public class GunsmokeEntityWrapperLivingEntity extends GunsmokeEntityWrapper imp
 	
 	@Override
 	public int getAir() {
-		return entity.getRemainingAir();
+		return airTicks;
 	}
 
 	@Override
 	public void setAir( int air ) {
-		entity.setRemainingAir( Math.max( 0, air ) );
+		airTicks = Math.min( maxAirTicks, Math.max( 0, air ) );
 	}
 
 	@Override
 	public int getMaxAir() {
-		return entity.getMaximumAir();
+		return maxAirTicks;
 	}
 
 	@Override
 	public void setMaxAir( int air ) {
-		entity.setMaximumAir( Math.max( 0, air ) );
+		maxAirTicks = Math.max( 0, air );
 	}
 }

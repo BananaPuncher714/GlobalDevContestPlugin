@@ -6,6 +6,7 @@ import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.util.Vector;
 
+import com.aaaaahhhhhhh.bananapuncher714.space.core.api.ActionMessageable;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.EnumTickResult;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.GunsmokeRepresentable;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.LocationTrackable;
@@ -16,7 +17,7 @@ import com.aaaaahhhhhhh.bananapuncher714.space.core.api.events.entity.GunsmokeEn
 
 import net.md_5.bungee.api.chat.BaseComponent;
 
-public abstract class GunsmokeEntity extends GunsmokeRepresentable implements Tickable, LocationTrackable {
+public abstract class GunsmokeEntity extends GunsmokeRepresentable implements Tickable, LocationTrackable, ActionMessageable {
 	protected Location location;
 	protected Vector velocity;
 	protected double speed;

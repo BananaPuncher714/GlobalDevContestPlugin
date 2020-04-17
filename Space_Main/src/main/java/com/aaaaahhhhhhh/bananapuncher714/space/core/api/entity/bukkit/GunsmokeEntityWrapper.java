@@ -16,6 +16,7 @@ import com.aaaaahhhhhhh.bananapuncher714.space.core.api.events.entity.GunsmokeEn
 
 public class GunsmokeEntityWrapper extends GunsmokeEntity implements Nameable, Gravitable {
 	protected Entity entity;
+	protected String message;
 	private double gravity = 1;
 	
 	public GunsmokeEntityWrapper( Entity entity ) {
@@ -105,5 +106,15 @@ public class GunsmokeEntityWrapper extends GunsmokeEntity implements Nameable, G
 	@Override
 	public void setGravity( double gravity ) {
 		this.gravity = gravity;
+	}
+
+	@Override
+	public String getMessage() {
+		return message;
+	}
+
+	@Override
+	public void setMessage( String message ) {
+		this.message = message;
 	}
 }

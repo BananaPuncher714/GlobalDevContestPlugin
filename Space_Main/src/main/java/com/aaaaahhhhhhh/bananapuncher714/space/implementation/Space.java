@@ -12,9 +12,11 @@ import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.generator.ChunkGenerator;
 
 import com.aaaaahhhhhhh.bananapuncher714.space.core.SpaceCore;
+import com.aaaaahhhhhhh.bananapuncher714.space.core.api.DamageType;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.Pair;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.command.SubCommand;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.command.executor.CommandExecutableMessage;
@@ -88,6 +90,18 @@ public class Space {
 		.applyTo( gravityCommand );
 		core.getHandler().registerCommand( gravityCommand );
 		
+		PluginCommand setMessage = BukkitUtil.constructCommand( "setmessage" );
+		new SubCommand( "setmessage" )
+		.defaultTo( ( sender, args, params ) -> {
+			if ( sender instanceof Player ) {
+				Player player = ( Player ) sender;
+				GunsmokeEntityWrapper wrapper = core.getItemManager().getEntityWrapper( player );
+				wrapper.setMessage( params.getFirst( String.class ) );
+			}
+		} )
+		.applyTo( setMessage );
+		core.getHandler().registerCommand( setMessage );
+		
 		PluginCommand spaceCommand = BukkitUtil.constructCommand( "space" );
 		new SubCommand( "space" )
 		.defaultTo( ( sender, args, params ) -> {
@@ -138,6 +152,7 @@ public class Space {
 		.applyTo( sinkholeCommand );
 		core.getHandler().registerCommand( sinkholeCommand );
 
+		Bukkit.unloadWorld( "space", true );
 		if ( Bukkit.getWorld( "space" ) == null ) {
 			WorldCreator creator = new WorldCreator( "space" )
 					.generator( new SpaceGenerator( Bukkit.getWorld( "world" ).getSeed() ) )
@@ -211,6 +226,10 @@ public class Space {
 					core.getInteractiveManager().addAir( wrapper, -1 );
 				} else if ( biome == Biome.FLOWER_FOREST || biome == Biome.MUSHROOM_FIELDS ) {
 					core.getInteractiveManager().addAir( wrapper, 10 );
+				}
+				
+				if ( wrapper.getAir() == 0 ) {
+					core.getDamageManager().damage( wrapper, .1, DamageType.TRUE, DamageCause.SUFFOCATION );
 				}
 				
 				if ( currentTick % 600 == 0 ) {

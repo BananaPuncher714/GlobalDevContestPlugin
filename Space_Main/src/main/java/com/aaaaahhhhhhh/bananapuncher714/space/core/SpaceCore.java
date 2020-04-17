@@ -1,19 +1,53 @@
 package com.aaaaahhhhhhh.bananapuncher714.space.core;
 
+import java.awt.Font;
+import java.awt.FontFormatException;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+
+import javax.imageio.ImageIO;
+
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.generator.ChunkGenerator;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import com.aaaaahhhhhhh.bananapuncher714.space.core.api.DamageType;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.PacketHandler;
+import com.aaaaahhhhhhh.bananapuncher714.space.core.api.entity.bukkit.GunsmokeEntityWrapperPlayer;
+import com.aaaaahhhhhhh.bananapuncher714.space.core.api.font.BananaFont;
+import com.aaaaahhhhhhh.bananapuncher714.space.core.api.font.BananaFontFactory;
+import com.aaaaahhhhhhh.bananapuncher714.space.core.api.font.BananaFontProvider;
+import com.aaaaahhhhhhh.bananapuncher714.space.core.api.font.BananaFontProviderBitmap;
+import com.aaaaahhhhhhh.bananapuncher714.space.core.api.font.BananaFontProviderNegativeSpace;
+import com.aaaaahhhhhhh.bananapuncher714.space.core.api.font.BananaFontProviderTTF;
+import com.aaaaahhhhhhh.bananapuncher714.space.core.api.font.MinecraftFontContainer;
+import com.aaaaahhhhhhh.bananapuncher714.space.core.api.resourcepack.FontBitmap;
+import com.aaaaahhhhhhh.bananapuncher714.space.core.api.resourcepack.FontIndex;
+import com.aaaaahhhhhhh.bananapuncher714.space.core.api.resourcepack.FontLegacy;
+import com.aaaaahhhhhhh.bananapuncher714.space.core.api.resourcepack.FontProvider;
+import com.aaaaahhhhhhh.bananapuncher714.space.core.api.resourcepack.FontTTF;
+import com.aaaaahhhhhhh.bananapuncher714.space.core.api.resourcepack.ResourcePack;
+import com.aaaaahhhhhhh.bananapuncher714.space.core.api.resourcepack.ResourcePackZip;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.tinyprotocol.TinyProtocol;
+import com.aaaaahhhhhhh.bananapuncher714.space.core.util.FileUtil;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.util.ReflectionUtil;
 import com.aaaaahhhhhhh.bananapuncher714.space.implementation.Space;
 import com.aaaaahhhhhhh.bananapuncher714.space.implementation.world.SpaceGenerator;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 
 import io.netty.channel.Channel;
+import net.md_5.bungee.api.ChatMessageType;
+import net.md_5.bungee.api.chat.TextComponent;
 
 public class SpaceCore extends JavaPlugin {
+	public static final Gson GSON = new Gson();
+	
 	private TinyProtocol protocol;
 	private PacketHandler handler;
 	
@@ -28,6 +62,9 @@ public class SpaceCore extends JavaPlugin {
 	private PlayerListener listener;
 	
 	private Space instance;
+	
+	private ResourcePackZip pack;
+	private BananaFont defaultFont;
 	
 	@Override
 	public void onEnable() {
@@ -52,6 +89,22 @@ public class SpaceCore extends JavaPlugin {
 			}
 		};
 		
+		// Set up resources
+		File resourcepack = new File( getDataFolder() + "/resources.zip" );
+		FileUtil.saveToFile( getResource( "data/Space.zip" ), resourcepack, false );
+		
+		try {
+			pack = new ResourcePackZip( resourcepack );
+			
+			defaultFont = BananaFontFactory.constructFrom( pack );
+			
+			enhanceFont( defaultFont );
+		} catch ( IOException e ) {
+			e.printStackTrace();
+		}
+		
+		
+		// Set up resource managers
 		entityManager = new DamageManager( this );
 		Bukkit.getPluginManager().registerEvents( entityManager, this );
 		
@@ -77,9 +130,24 @@ public class SpaceCore extends JavaPlugin {
 		itemManager.tick();
 		handler.tick();
 		
-		// Internal stuff
 		for ( Player player : Bukkit.getOnlinePlayers() ) {
-			handler.setAir( player, player.getRemainingAir() );
+			GunsmokeEntityWrapperPlayer wrapper = ( GunsmokeEntityWrapperPlayer ) itemManager.getEntityWrapper( player );
+			
+			// Simulate drowning
+			if ( handler.isInFluid( player ) ) {
+				playerManager.addAir( wrapper, -1 );
+			} else {
+				playerManager.addAir( wrapper, 5 );
+			}
+			
+			if ( wrapper.getAir() == 0 ) {
+				entityManager.damage( wrapper, .4, DamageType.VANILLA, DamageCause.DROWNING );
+			}
+			
+			String actionbar = wrapper.getMessage();
+			if ( actionbar != null ) {
+				player.spigot().sendMessage( ChatMessageType.ACTION_BAR, new TextComponent( actionbar ) );
+			}
 		}
 	}
 	
@@ -134,5 +202,44 @@ public class SpaceCore extends JavaPlugin {
 	
 	public Space getSpaceInstance() {
 		return instance;
+	}
+	
+	public void enhanceFont( BananaFont font ) {
+		JsonObject obj = GSON.fromJson( new InputStreamReader( getResource( "data/font/default.json" ) ), JsonObject.class );
+		FontIndex index = new FontIndex( obj );
+		for ( FontProvider provider : index.getProviders() ) {
+			if ( provider instanceof FontBitmap ) {
+				FontBitmap bitmap = ( FontBitmap ) provider;
+				
+				InputStream resource = getResource( bitmap.getFile().key );
+				try {
+					BufferedImage image = ImageIO.read( resource );
+					BananaFontProvider bitmapProvider = new BananaFontProviderBitmap( image, bitmap.getChars(), bitmap.getHeight() );
+					font.addProvider( bitmapProvider );
+				} catch ( IOException e ) {
+					e.printStackTrace();
+				}
+			} else if ( provider instanceof FontTTF ) {
+				FontTTF ttf = ( FontTTF ) provider;
+				
+				if ( ttf.getFile().key.contains( "negative_spaces" ) ) {
+					font.addProvider( BananaFontProviderNegativeSpace.getProvider() );
+				} else {
+					InputStream resource = getResource( ttf.getFile().key );
+					try {
+						Font jFont = Font.createFont( Font.TRUETYPE_FONT, resource );
+						BananaFontProvider bananaProvider = new BananaFontProviderTTF( jFont );
+						font.addProvider( bananaProvider );
+					} catch ( FontFormatException | IOException e ) {
+						e.printStackTrace();
+					}
+				}
+			} else if ( provider instanceof FontLegacy ) {
+				FontLegacy legacy = ( FontLegacy ) provider;
+				InputStream resource = getResource( legacy.getSizes().key );
+				BananaFontProvider container = new MinecraftFontContainer( resource );
+				font.addProvider( container );
+			}
+		}
 	}
 }

@@ -392,6 +392,7 @@ public class NMSHandler implements PacketHandler {
 	
 	@Override
 	public void setAir( Player player, int air ) {
+		// Really not a good method especially for 1.15.2 clients for some reason?!
 		int id = player.getEntityId();
 		DataWatcher watcher = ( ( CraftEntity ) player ).getHandle().getDataWatcher();
 		PacketPlayOutEntityMetadata packet = new PacketPlayOutEntityMetadata( id, watcher, false );

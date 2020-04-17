@@ -1,5 +1,6 @@
 package com.aaaaahhhhhhh.bananapuncher714.space.implementation;
 
+import org.apache.commons.lang.StringUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Entity;
@@ -61,7 +62,9 @@ public class SpaceHelmet extends GunsmokeItemInteractable implements Tickable {
 
 	@Override
 	public EnumEventResult onClick( RightClickEvent event ) {
-		event.setCancelled( true );
+		if ( slot instanceof ItemSlotEquipment && ( ( ( ItemSlotEquipment ) slot ).getSlot() == EquipmentSlot.HAND || ( ( ItemSlotEquipment ) slot ).getSlot() == EquipmentSlot.OFF_HAND ) ) {
+			event.setCancelled( true );
+		}
 		if ( holder instanceof GunsmokeEntityWrapperLivingEntity ) {
 			GunsmokeEntityWrapperLivingEntity lEnt = ( GunsmokeEntityWrapperLivingEntity ) holder;
 			ItemSlotEquipment helmet = new ItemSlotEquipment( lEnt, EquipmentSlot.HEAD );
@@ -101,13 +104,30 @@ public class SpaceHelmet extends GunsmokeItemInteractable implements Tickable {
 			
 			if ( holder instanceof GunsmokeEntityWrapperPlayer ) {
 				GunsmokeEntityWrapperPlayer pl = ( GunsmokeEntityWrapperPlayer ) holder;
-				Player player = pl.getEntity();
-				
-				player.spigot().sendMessage( ChatMessageType.ACTION_BAR, new TextComponent( amount + "/" + max ) );
+				double percent = amount / ( double ) max;
+				int amount = ( int ) ( percent * 112 );
+				pl.setMessage( ( ( char ) ( '\uE4A4' + amount ) ) + StringUtils.repeat( " ", 60 ) );
+			}
+			
+			if ( holder instanceof Breathable && slot instanceof ItemSlotEquipment && ( ( ItemSlotEquipment ) slot ).getSlot() == EquipmentSlot.HEAD ) {
+				Breathable breathable = ( Breathable ) holder;
+				// Don't overfill, underfill, lose air, or make the user suffocate
+				int airTicks = Math.max( 0, Math.min( breathable.getMaxAir() - breathable.getAir(), Math.min( amount, refillRate ) ) );
+				SpaceUtil.getPlugin().getInteractiveManager().addAir( breathable, airTicks );
+				amount -= airTicks;
 			}
 		}
 		
 		return EnumTickResult.CONTINUE;
+	}
+	
+	@Override
+	public void unequip() {
+		if ( holder instanceof GunsmokeEntityWrapperPlayer ) {
+			GunsmokeEntityWrapperPlayer pl = ( GunsmokeEntityWrapperPlayer ) holder;
+			pl.setMessage( null );
+		}
+		super.unequip();
 	}
 	
 	@Override

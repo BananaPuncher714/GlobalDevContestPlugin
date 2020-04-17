@@ -10,13 +10,16 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockDamageEvent;
 import org.bukkit.event.entity.EntityAirChangeEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerAnimationEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
@@ -228,12 +231,22 @@ public class PlayerListener implements Listener {
 			GunsmokeEntityWrapperLivingEntity wrapper = ( GunsmokeEntityWrapperLivingEntity ) plugin.getItemManager().getEntityWrapper( ent );
 
 			// Change to
-			GunsmokeAirChangeEvent airEvent = new GunsmokeAirChangeEvent( wrapper, event.getAmount() - wrapper.getAir() );
-			airEvent.callEvent();
+			int change = event.getAmount() - wrapper.getEntity().getRemainingAir();
 			
-			// Add modifier
-			event.setAmount( wrapper.getAir() + airEvent.getAir() );
-			event.setCancelled( airEvent.isCancelled() );
+			plugin.getInteractiveManager().addAir( wrapper, change );
+		}
+	}
+	
+	@EventHandler( priority = EventPriority.HIGHEST )
+	private void onPlayerDamageEvent( EntityDamageEvent event ) {
+		if ( event.getCause() == DamageCause.DROWNING ) {
+			Entity entity = event.getEntity();
+			if ( entity instanceof LivingEntity ) {
+				LivingEntity lEnt = ( LivingEntity ) entity;
+				GunsmokeEntityWrapperLivingEntity wrapper = ( GunsmokeEntityWrapperLivingEntity ) plugin.getItemManager().getEntityWrapper( lEnt );
+				lEnt.setRemainingAir( Math.min( lEnt.getMaximumAir(), wrapper.getAir() ) );
+				event.setCancelled( true );
+			}
 		}
 	}
 	

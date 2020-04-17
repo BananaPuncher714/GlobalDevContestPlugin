@@ -657,7 +657,7 @@ public class ItemManager implements Listener {
 		event.setCancelled( true );
 	}
 	
-	@EventHandler( priority = EventPriority.HIGH )
+	@EventHandler( priority = EventPriority.HIGH, ignoreCancelled = true )
 	private void onEvent( EntityDamageEvent event ) {
 		plugin.getDamageManager().damage( getEntityWrapper( event.getEntity() ), event.getDamage(), DamageType.VANILLA, event.getCause() );
 		event.setCancelled( true );
