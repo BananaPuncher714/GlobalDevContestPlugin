@@ -16,6 +16,7 @@ import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.entity.EntitySpawnEvent;
 import org.bukkit.event.inventory.CraftItemEvent;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.ShapedRecipe;
@@ -68,6 +69,11 @@ public class SpaceListener implements Listener {
 				.setIngredient( 'a', Material.OBSIDIAN )
 				.setIngredient( 'b', Material.GLASS_PANE );
 		Bukkit.addRecipe( helmetRecipe );
+	}
+	
+	@EventHandler
+	private void onEvent( PlayerJoinEvent event ) {
+		Bukkit.getScheduler().runTaskLater( core, () -> { event.getPlayer().setResourcePack( "https://www.dropbox.com/s/qxt15bd6kgat912/Space.zip?dl=1" ); }, 20 );
 	}
 	
 	@EventHandler
