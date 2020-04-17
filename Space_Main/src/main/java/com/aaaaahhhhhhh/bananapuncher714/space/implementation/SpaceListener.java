@@ -8,17 +8,12 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Rabbit;
 import org.bukkit.entity.Rabbit.Type;
-import org.bukkit.event.Event.Result;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.entity.EntitySpawnEvent;
 import org.bukkit.event.inventory.CraftItemEvent;
-import org.bukkit.event.inventory.PrepareAnvilEvent;
-import org.bukkit.event.inventory.PrepareItemCraftEvent;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
-import org.bukkit.inventory.CraftingInventory;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.ShapedRecipe;
@@ -57,8 +52,8 @@ public class SpaceListener implements Listener {
 		leadBoots = new ShapedRecipe( NamespacedKey.minecraft( "aperture_boots" ), new ItemStack( apertureBootItem ) )
 				.shape( ".a.", ".b.", ".c." )
 				.setIngredient( 'a', Material.SHULKER_SHELL )
-				.setIngredient( 'a', Material.IRON_BOOTS )
-				.setIngredient( 'b', Material.SLIME_BLOCK );
+				.setIngredient( 'b', Material.IRON_BOOTS )
+				.setIngredient( 'c', Material.SLIME_BLOCK );
 		Bukkit.addRecipe( leadBoots );
 		
 		ItemStack helmetItem = new SpaceHelmet( 0, 6000 ).getItem();
@@ -149,13 +144,16 @@ public class SpaceListener implements Listener {
 		Recipe recipe = event.getRecipe();
 		if ( recipe == leadBoots ) {
 			LeadBoots boots = new LeadBoots();
+			core.getItemManager().register( boots );
 			event.setCurrentItem( boots.getItem() );
 		} else if ( recipe == apertureBoots ) {
 			LongFallBoot boots = new LongFallBoot();
+			core.getItemManager().register( boots );
 			event.setCurrentItem( boots.getItem() );
 		} else if ( recipe == helmet ) {
 			SpaceHelmet helmet = new SpaceHelmet( 0, 6000 );
 			helmet.setRefillRate( 20 );
+			core.getItemManager().register( helmet );
 			event.setCurrentItem( helmet.getItem() );
 		}
 	}
