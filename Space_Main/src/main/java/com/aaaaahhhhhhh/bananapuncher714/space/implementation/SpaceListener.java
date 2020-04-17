@@ -1,5 +1,7 @@
 package com.aaaaahhhhhhh.bananapuncher714.space.implementation;
 
+import java.util.UUID;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -29,39 +31,43 @@ import com.aaaaahhhhhhh.bananapuncher714.space.core.api.events.GunsmokeAirChange
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.events.block.GunsmokeBlockCreateEvent;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.events.entity.GunsmokeEntityDamageEvent;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.events.entity.GunsmokeEntityLoadEvent;
+import com.aaaaahhhhhhh.bananapuncher714.space.core.api.item.GunsmokeItem;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.util.SpaceUtil;
 
 public class SpaceListener implements Listener {
 	private SpaceCore core;
 	
-	private Recipe leadBoots;
-	private Recipe apertureBoots;
-	private Recipe helmet;
+	private UUID leadBoots;
+	private UUID apertureBoots;
+	private UUID helmet;
 	
 	protected SpaceListener( SpaceCore core ) {
 		this.core = core;
 		
-		ItemStack bootItem = new LeadBoots().getItem();
-		leadBoots = new ShapedRecipe( NamespacedKey.minecraft( "lead_boots" ), new ItemStack( bootItem ) )
+		LeadBoots bootItem = new LeadBoots();
+		leadBoots = bootItem.getUUID();
+		ShapedRecipe leadBootRecipe = new ShapedRecipe( NamespacedKey.minecraft( "lead_boots" ), bootItem.getItem() )
 				.shape( "i.i", "x.x", "x.x" )
 				.setIngredient( 'i', Material.IRON_INGOT )
 				.setIngredient( 'x', Material.OBSIDIAN );
-		Bukkit.addRecipe( leadBoots );
+		Bukkit.addRecipe( leadBootRecipe );
 			
-		ItemStack apertureBootItem = new LongFallBoot().getItem();
-		leadBoots = new ShapedRecipe( NamespacedKey.minecraft( "aperture_boots" ), new ItemStack( apertureBootItem ) )
+		LongFallBoot apertureBootItem = new LongFallBoot();
+		apertureBoots = apertureBootItem.getUUID();
+		ShapedRecipe apretureBootRecipe = new ShapedRecipe( NamespacedKey.minecraft( "aperture_boots" ), apertureBootItem.getItem() )
 				.shape( ".a.", ".b.", ".c." )
 				.setIngredient( 'a', Material.SHULKER_SHELL )
 				.setIngredient( 'b', Material.IRON_BOOTS )
 				.setIngredient( 'c', Material.SLIME_BLOCK );
-		Bukkit.addRecipe( leadBoots );
+		Bukkit.addRecipe( apretureBootRecipe );
 		
-		ItemStack helmetItem = new SpaceHelmet( 0, 6000 ).getItem();
-		leadBoots = new ShapedRecipe( NamespacedKey.minecraft( "space_helmet" ), new ItemStack( helmetItem ) )
+		SpaceHelmet helmetItem = new SpaceHelmet( 0, 6000 );
+		helmet = helmetItem.getUUID();
+		ShapedRecipe helmetRecipe = new ShapedRecipe( NamespacedKey.minecraft( "space_helmet" ), helmetItem.getItem() )
 				.shape( "aaa", "aba", "aaa" )
 				.setIngredient( 'a', Material.OBSIDIAN )
 				.setIngredient( 'b', Material.GLASS_PANE );
-		Bukkit.addRecipe( leadBoots );
+		Bukkit.addRecipe( helmetRecipe );
 	}
 	
 	@EventHandler
@@ -142,19 +148,23 @@ public class SpaceListener implements Listener {
 	@EventHandler
 	private void onEvent( CraftItemEvent event ) {
 		Recipe recipe = event.getRecipe();
-		if ( recipe == leadBoots ) {
-			LeadBoots boots = new LeadBoots();
-			core.getItemManager().register( boots );
-			event.setCurrentItem( boots.getItem() );
-		} else if ( recipe == apertureBoots ) {
-			LongFallBoot boots = new LongFallBoot();
-			core.getItemManager().register( boots );
-			event.setCurrentItem( boots.getItem() );
-		} else if ( recipe == helmet ) {
-			SpaceHelmet helmet = new SpaceHelmet( 0, 6000 );
-			helmet.setRefillRate( 20 );
-			core.getItemManager().register( helmet );
-			event.setCurrentItem( helmet.getItem() );
+		ItemStack result = recipe.getResult();
+		if ( result != null ) {
+			UUID uuid = GunsmokeItem.getUUID( result );
+			if ( uuid.equals( leadBoots ) ) {
+				LeadBoots boots = new LeadBoots();
+				core.getItemManager().register( boots );
+				event.setCurrentItem( boots.getItem() );
+			} else if ( uuid.equals( apertureBoots ) ) {
+				LongFallBoot boots = new LongFallBoot();
+				core.getItemManager().register( boots );
+				event.setCurrentItem( boots.getItem() );
+			} else if ( uuid.equals( helmet ) ) {
+				SpaceHelmet helmet = new SpaceHelmet( 0, 6000 );
+				helmet.setRefillRate( 20 );
+				core.getItemManager().register( helmet );
+				event.setCurrentItem( helmet.getItem() );
+			}
 		}
 	}
 }

@@ -91,18 +91,6 @@ public class Space {
 		.applyTo( gravityCommand );
 		core.getHandler().registerCommand( gravityCommand );
 		
-		PluginCommand setMessage = BukkitUtil.constructCommand( "setmessage" );
-		new SubCommand( "setmessage" )
-		.defaultTo( ( sender, args, params ) -> {
-			if ( sender instanceof Player ) {
-				Player player = ( Player ) sender;
-				GunsmokeEntityWrapper wrapper = core.getItemManager().getEntityWrapper( player );
-				wrapper.setMessage( params.getFirst( String.class ) );
-			}
-		} )
-		.applyTo( setMessage );
-		core.getHandler().registerCommand( setMessage );
-		
 		PluginCommand spaceCommand = BukkitUtil.constructCommand( "space" );
 		new SubCommand( "space" )
 		.defaultTo( ( sender, args, params ) -> {
