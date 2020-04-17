@@ -95,7 +95,10 @@ public class SpaceCore extends JavaPlugin {
 			if ( handler.isInFluid( player ) ) {
 				playerManager.addAir( wrapper, -1 );
 			} else {
-				playerManager.addAir( wrapper, 5 );
+				// Only give them air if they can breath
+				if ( instance.canBreath( player ) ) {
+					playerManager.addAir( wrapper, 5 );
+				}
 			}
 			
 			if ( wrapper.getAir() == 0 ) {
@@ -108,10 +111,7 @@ public class SpaceCore extends JavaPlugin {
 				int amount = Math.max( 0, Math.min( 112, ( int ) ( left * 112 ) ) ) + '\uE4A4';
 				actionBuilder.append( ( char ) amount );
 			} else {
-				actionBuilder.append( ChatColor.BLACK );
-				actionBuilder.append( "." );
 				actionBuilder.append( StringUtils.repeat( " ", 8 ) );
-				actionBuilder.append( ChatColor.RESET );
 			}
 			
 			actionBuilder.append( StringUtils.repeat( " ", 65 ) );
@@ -121,10 +121,7 @@ public class SpaceCore extends JavaPlugin {
 				int amount = Math.max( 0, Math.min( 112, ( int ) ( right * 112 ) ) ) + '\uE4A4';
 				actionBuilder.append( ( char ) amount );
 			} else {
-				actionBuilder.append( ChatColor.BLACK );
-				actionBuilder.append( "." );
 				actionBuilder.append( StringUtils.repeat( " ", 8 ) );
-				actionBuilder.append( ChatColor.RESET );
 			}
 			
 			player.spigot().sendMessage( ChatMessageType.ACTION_BAR, new TextComponent( actionBuilder.toString() ) );

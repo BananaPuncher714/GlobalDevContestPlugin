@@ -1,10 +1,8 @@
 package com.aaaaahhhhhhh.bananapuncher714.space.implementation;
 
-import org.apache.commons.lang.StringUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -22,9 +20,6 @@ import com.aaaaahhhhhhh.bananapuncher714.space.core.api.item.GunsmokeItem;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.item.GunsmokeItemInteractable;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.item.ItemSlotEquipment;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.util.SpaceUtil;
-
-import net.md_5.bungee.api.ChatMessageType;
-import net.md_5.bungee.api.chat.TextComponent;
 
 public class SpaceHelmet extends GunsmokeItemInteractable implements Tickable {
 	protected int amount;

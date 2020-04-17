@@ -147,19 +147,6 @@ public class SpaceListener implements Listener {
 	}
 	
 	@EventHandler
-	private void onEvent( GunsmokeAirChangeEvent event ) {
-		Breathable breathable = event.getBreathable();
-		if ( breathable instanceof GunsmokeEntityWrapper ) {
-			GunsmokeEntityWrapper wrapper = ( GunsmokeEntityWrapper ) breathable;
-			if ( !core.getSpaceInstance().canBreath( wrapper.getEntity() ) ) {
-				if ( event.getAir() > 0 ) {
-					event.setCancelled( true );
-				}
-			}
-		}
-	}
-	
-	@EventHandler
 	private void onEvent( CraftItemEvent event ) {
 		Recipe recipe = event.getRecipe();
 		ItemStack result = recipe.getResult();
