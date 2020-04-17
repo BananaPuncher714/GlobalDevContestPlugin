@@ -30,10 +30,13 @@ import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.Inventory;
 
+import com.aaaaahhhhhhh.bananapuncher714.space.core.api.DamageType;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.GunsmokeRepresentable;
+import com.aaaaahhhhhhh.bananapuncher714.space.core.api.entity.GunsmokeEntity;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.entity.GunsmokeInteractive;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.entity.bukkit.GunsmokeEntityWrapperLivingEntity;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.events.GunsmokeAirChangeEvent;
+import com.aaaaahhhhhhh.bananapuncher714.space.core.api.events.entity.GunsmokeEntityDamageEvent;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.events.entity.GunsmokeEntityDeathEvent;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.events.entity.GunsmokeEntityDespawnEvent;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.events.player.PlayerUpdateItemEvent;
@@ -238,13 +241,12 @@ public class PlayerListener implements Listener {
 	}
 	
 	@EventHandler( priority = EventPriority.HIGHEST )
-	private void onPlayerDamageEvent( EntityDamageEvent event ) {
-		if ( event.getCause() == DamageCause.DROWNING ) {
-			Entity entity = event.getEntity();
-			if ( entity instanceof LivingEntity ) {
-				LivingEntity lEnt = ( LivingEntity ) entity;
-				GunsmokeEntityWrapperLivingEntity wrapper = ( GunsmokeEntityWrapperLivingEntity ) plugin.getItemManager().getEntityWrapper( lEnt );
-				lEnt.setRemainingAir( Math.min( lEnt.getMaximumAir(), wrapper.getAir() ) );
+	private void onPlayerDamageEvent( GunsmokeEntityDamageEvent event ) {
+		if ( event.getType() == DamageType.VANILLA && event.getCause() == DamageCause.DROWNING ) {
+			GunsmokeEntity entity = event.getRepresentable();
+			if ( entity instanceof GunsmokeEntityWrapperLivingEntity ) {
+				GunsmokeEntityWrapperLivingEntity lEnt = ( GunsmokeEntityWrapperLivingEntity ) entity;
+				lEnt.getEntity().setRemainingAir( Math.min( lEnt.getEntity().getMaximumAir(), lEnt.getAir() ) );
 				event.setCancelled( true );
 			}
 		}

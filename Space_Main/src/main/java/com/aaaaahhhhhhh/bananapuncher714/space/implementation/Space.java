@@ -24,6 +24,7 @@ import com.aaaaahhhhhhh.bananapuncher714.space.core.api.command.validator.InputV
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.command.validator.sender.SenderValidatorPlayer;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.entity.bukkit.GunsmokeEntityWrapper;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.entity.bukkit.GunsmokeEntityWrapperLivingEntity;
+import com.aaaaahhhhhhh.bananapuncher714.space.core.api.entity.bukkit.GunsmokeEntityWrapperPlayer;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.util.BukkitUtil;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.util.SpaceUtil;
 import com.aaaaahhhhhhh.bananapuncher714.space.implementation.world.SpaceGenerator;
@@ -197,8 +198,10 @@ public class Space {
 					World teleportTo = Bukkit.getWorld( "world" );
 					if ( !SpaceUtil.isSpaceWorld( world ) ) {
 						// Allow space travel only at night
-						if ( world.getTime() > 14000 && world.getTime() < 22000 ) {
+						if ( world.getTime() >= 14000 && world.getTime() <= 22000 ) {
 							teleportTo = Bukkit.getWorld( "space" );
+						} else {
+							teleportTo = null;
 						}
 					}
 					
@@ -228,10 +231,6 @@ public class Space {
 					core.getInteractiveManager().addAir( wrapper, 10 );
 				}
 				
-				if ( wrapper.getAir() == 0 ) {
-					core.getDamageManager().damage( wrapper, .1, DamageType.TRUE, DamageCause.SUFFOCATION );
-				}
-				
 				if ( currentTick % 600 == 0 ) {
 					Pair< Double, Double > coords = generator.getSinkholeCoords( location.getBlockX(), location.getBlockZ() );
 					player.setCompassTarget( new Location( player.getWorld(), coords.getFirst(), 0, coords.getSecond() ) );
@@ -239,6 +238,11 @@ public class Space {
 					// Update the player's compass
 				}
 			}
+		}
+		
+		for ( Player player : Bukkit.getOnlinePlayers() ) {
+			GunsmokeEntityWrapperPlayer pl = ( GunsmokeEntityWrapperPlayer ) core.getItemManager().getEntityWrapper( player );
+			pl.setRightPercent( pl.getAir() / ( double ) pl.getMaxAir() );
 		}
 	}
 	

@@ -105,8 +105,7 @@ public class SpaceHelmet extends GunsmokeItemInteractable implements Tickable {
 			if ( holder instanceof GunsmokeEntityWrapperPlayer ) {
 				GunsmokeEntityWrapperPlayer pl = ( GunsmokeEntityWrapperPlayer ) holder;
 				double percent = amount / ( double ) max;
-				int amount = ( int ) ( percent * 112 );
-				pl.setMessage( ( ( char ) ( '\uE4A4' + amount ) ) + StringUtils.repeat( " ", 60 ) );
+				pl.setLeftPercent( percent );
 			}
 			
 			if ( holder instanceof Breathable && slot instanceof ItemSlotEquipment && ( ( ItemSlotEquipment ) slot ).getSlot() == EquipmentSlot.HEAD ) {
@@ -125,7 +124,7 @@ public class SpaceHelmet extends GunsmokeItemInteractable implements Tickable {
 	public void unequip() {
 		if ( holder instanceof GunsmokeEntityWrapperPlayer ) {
 			GunsmokeEntityWrapperPlayer pl = ( GunsmokeEntityWrapperPlayer ) holder;
-			pl.setMessage( null );
+			pl.setLeftPercent( -1 );
 		}
 		super.unequip();
 	}
