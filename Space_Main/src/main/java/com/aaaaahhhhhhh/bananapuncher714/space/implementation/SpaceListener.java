@@ -1,15 +1,27 @@
 package com.aaaaahhhhhhh.bananapuncher714.space.implementation;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Rabbit;
 import org.bukkit.entity.Rabbit.Type;
+import org.bukkit.event.Event.Result;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.entity.EntitySpawnEvent;
+import org.bukkit.event.inventory.CraftItemEvent;
+import org.bukkit.event.inventory.PrepareAnvilEvent;
+import org.bukkit.event.inventory.PrepareItemCraftEvent;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
+import org.bukkit.inventory.CraftingInventory;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.Recipe;
+import org.bukkit.inventory.ShapedRecipe;
 
 import com.aaaaahhhhhhh.bananapuncher714.space.core.SpaceCore;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.Breathable;
@@ -27,8 +39,34 @@ import com.aaaaahhhhhhh.bananapuncher714.space.core.util.SpaceUtil;
 public class SpaceListener implements Listener {
 	private SpaceCore core;
 	
+	private Recipe leadBoots;
+	private Recipe apertureBoots;
+	private Recipe helmet;
+	
 	protected SpaceListener( SpaceCore core ) {
 		this.core = core;
+		
+		ItemStack bootItem = new LeadBoots().getItem();
+		leadBoots = new ShapedRecipe( NamespacedKey.minecraft( "lead_boots" ), new ItemStack( bootItem ) )
+				.shape( "i.i", "x.x", "x.x" )
+				.setIngredient( 'i', Material.IRON_INGOT )
+				.setIngredient( 'x', Material.OBSIDIAN );
+		Bukkit.addRecipe( leadBoots );
+			
+		ItemStack apertureBootItem = new LongFallBoot().getItem();
+		leadBoots = new ShapedRecipe( NamespacedKey.minecraft( "aperture_boots" ), new ItemStack( apertureBootItem ) )
+				.shape( ".a.", ".b.", ".c." )
+				.setIngredient( 'a', Material.SHULKER_SHELL )
+				.setIngredient( 'a', Material.IRON_BOOTS )
+				.setIngredient( 'b', Material.SLIME_BLOCK );
+		Bukkit.addRecipe( leadBoots );
+		
+		ItemStack helmetItem = new SpaceHelmet( 0, 6000 ).getItem();
+		leadBoots = new ShapedRecipe( NamespacedKey.minecraft( "space_helmet" ), new ItemStack( helmetItem ) )
+				.shape( "aaa", "aba", "aaa" )
+				.setIngredient( 'a', Material.OBSIDIAN )
+				.setIngredient( 'b', Material.GLASS_PANE );
+		Bukkit.addRecipe( leadBoots );
 	}
 	
 	@EventHandler
@@ -103,6 +141,22 @@ public class SpaceListener implements Listener {
 					event.setCancelled( true );
 				}
 			}
+		}
+	}
+	
+	@EventHandler
+	private void onEvent( CraftItemEvent event ) {
+		Recipe recipe = event.getRecipe();
+		if ( recipe == leadBoots ) {
+			LeadBoots boots = new LeadBoots();
+			event.setCurrentItem( boots.getItem() );
+		} else if ( recipe == apertureBoots ) {
+			LongFallBoot boots = new LongFallBoot();
+			event.setCurrentItem( boots.getItem() );
+		} else if ( recipe == helmet ) {
+			SpaceHelmet helmet = new SpaceHelmet( 0, 6000 );
+			helmet.setRefillRate( 20 );
+			event.setCurrentItem( helmet.getItem() );
 		}
 	}
 }

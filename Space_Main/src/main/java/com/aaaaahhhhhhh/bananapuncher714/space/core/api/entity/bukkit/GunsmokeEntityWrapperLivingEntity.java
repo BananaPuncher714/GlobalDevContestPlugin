@@ -23,8 +23,8 @@ public class GunsmokeEntityWrapperLivingEntity extends GunsmokeEntityWrapper imp
 	protected boolean holdingRightClick = false;
 	protected int miningTimeStart = 0;
 	protected Location mining;
-	protected int airTicks = 300;
-	protected int maxAirTicks = 300;
+	protected int airTicks = 500;
+	protected int maxAirTicks = 500;
 	
 	private Map< EquipmentSlot, GunsmokeItem > items = new HashMap< EquipmentSlot, GunsmokeItem >();
 	

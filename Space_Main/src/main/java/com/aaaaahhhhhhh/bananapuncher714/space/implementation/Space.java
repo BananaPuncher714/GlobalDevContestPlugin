@@ -1,6 +1,7 @@
 package com.aaaaahhhhhhh.bananapuncher714.space.implementation;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.GameRule;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -12,11 +13,9 @@ import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
-import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.generator.ChunkGenerator;
 
 import com.aaaaahhhhhhh.bananapuncher714.space.core.SpaceCore;
-import com.aaaaahhhhhhh.bananapuncher714.space.core.api.DamageType;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.Pair;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.command.SubCommand;
 import com.aaaaahhhhhhh.bananapuncher714.space.core.api.command.executor.CommandExecutableMessage;
@@ -62,7 +61,8 @@ public class Space {
 				core.getItemManager().register( stick );
 				player.getInventory().addItem( stick.getItem() );
 				
-				SpaceHelmet helmet = new SpaceHelmet( 250, 600 );
+				SpaceHelmet helmet = new SpaceHelmet( 250, 6000 );
+				helmet.setRefillRate( 50 );
 				core.getItemManager().register( helmet );
 				player.getInventory().addItem( helmet.getItem() );
 				
@@ -144,7 +144,7 @@ public class Space {
 					Pair< Double, Double > coords = sGen.getSinkholeCoords( player.getLocation().getBlockX(), player.getLocation().getBlockZ() );
 					player.sendMessage( "Sinkhole at " + coords.getFirst() + ", " + coords.getSecond() );
 				} else {
-					player.sendMessage( "Not in space!" );
+					player.sendMessage( ChatColor.RED + "Not in space!" );
 				}
 			} else {
 				sender.sendMessage( "Must be player!" );

@@ -99,7 +99,7 @@ public class SpaceCore extends JavaPlugin {
 			}
 			
 			if ( wrapper.getAir() == 0 ) {
-				entityManager.damage( wrapper, .4, DamageType.VANILLA, DamageCause.DROWNING );
+				entityManager.damage( wrapper, .4, DamageType.TRUE, DamageCause.DROWNING );
 			}
 			
 			StringBuilder actionBuilder = new StringBuilder();
