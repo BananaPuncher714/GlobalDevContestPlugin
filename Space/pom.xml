@@ -49,5 +49,5 @@
 			<version>${master.version}</version>
 		</dependency>
 	</dependencies>
-	<version>0.0.1</version>
+	<version>1.0.0</version>
 </project>

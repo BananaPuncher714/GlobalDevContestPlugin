@@ -7,6 +7,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Rabbit;
 import org.bukkit.entity.Rabbit.Type;
@@ -91,6 +92,13 @@ public class SpaceListener implements Listener {
 				// Spawn a rabbit for each spider
 				Rabbit rabbit = location.getWorld().spawn( location, Rabbit.class );
 				rabbit.setRabbitType( Type.THE_KILLER_BUNNY );
+			}
+			
+			// Add glass to their heads
+			if ( event.getEntity() instanceof LivingEntity ) {
+				LivingEntity ent = ( LivingEntity ) event.getEntity();
+				ent.getEquipment().setHelmet( new ItemStack( Material.WHITE_STAINED_GLASS ) );
+				ent.getEquipment().setHelmetDropChance( 0 );
 			}
 		}
 	}

@@ -39,5 +39,15 @@ ooo
 - g: Glass pane
 Gives you air when you need it
 
+### Commands
+- `/space` - Visit space and back
+- `/sinkhole` - Get the coords of the nearest sinkhole.
+- `/setgravity` - Set your gravity for testing. Note that changing gravity does not affect creative players.
+
+### Comments
+Unfortunately, reloading of the server will cause items to stop working. So please do not.
+
+Also, gravity is a bit buggy, but that can't really be helped due to how Minecraft handles packets.
+
 ### Contributors
 - BananaPuncher714
